@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cosecha — CacaoGest</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=DM+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --sidebar-bg1: #3b1f13; --sidebar-bg2: #5b341c; --sidebar-border: #2e3a32;
+  --green: #7baa2f; --green-dark: #678e27; --cream: #f4f1ec;
+  --brown-dark: #382011; --brown-mid: #7c4a2b; --text-main: #5a6b5e;
+  --text-dark: #1a1a1a; --border-color: #9aab9e;
+  --amber: #fde68a; --amber-border: #b49a33; --amber-text: #7c4a2b;
+  --blue-badge: #b1cff3; --blue-text: #0e6dcb;
+  --red-badge: #fca5a5; --red-text: #e53e3e;
+}
+body { font-family: 'DM Sans', sans-serif; background: var(--cream); display: flex; min-height: 100vh; color: var(--text-dark); }
+
+/* SIDEBAR */
+.sidebar { width: 220px; min-width: 220px; background: linear-gradient(180deg, var(--sidebar-bg1) 0%, var(--sidebar-bg2) 100%); border-right: 0.8px solid var(--sidebar-border); display: flex; flex-direction: column; min-height: 100vh; position: sticky; top: 0; }
+.sidebar-logo { padding: 24px 20px 20px; border-bottom: 0.8px solid rgba(255,255,255,0.12); display: flex; align-items: center; gap: 12px; }
+.logo-icon { width: 48px; height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+.logo-text .brand { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -0.3px; line-height: 1; }
+.logo-text .brand .cacao { color: #fff; } .logo-text .brand .gest { color: var(--green); }
+.logo-text .cycle { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 11px; color: var(--brown-mid); margin-top: 3px; }
+.nav-body { flex: 1; padding: 16px 12px; overflow-y: auto; }
+.nav-section-label { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 12px; color: var(--green); letter-spacing: 1px; padding: 0 8px; margin: 14px 0 6px; }
+.nav-section-label:first-child { margin-top: 0; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 6px; font-family: 'Inter', sans-serif; font-weight: 500; font-size: 14px; color: #e8ede9; cursor: pointer; margin-bottom: 2px; transition: background 0.15s; text-decoration: none; }
+.nav-item:hover { background: rgba(255,255,255,0.08); } .nav-item.active { background: var(--green-dark); }
+.nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+.sidebar-user { margin: 12px; background: var(--brown-dark); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.user-avatar { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.user-info .uname { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 13px; color: #fff; }
+.user-info .urole { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 1px; }
+.user-chevron { margin-left: auto; color: rgba(255,255,255,0.4); font-size: 14px; }
+
+/* MAIN */
+.main { flex: 1; display: flex; flex-direction: column; }
+.topbar { background: var(--cream); border-bottom: 0.8px solid var(--border-color); padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; }
+.page-title { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 20px; color: var(--green); letter-spacing: -0.6px; }
+.page-sub { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-main); margin-top: 2px; }
+.btn-primary { background: var(--green); color: #fff; border: none; border-radius: 7px; padding: 9px 18px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px; cursor: pointer; transition: background 0.15s; }
+.btn-primary:hover { background: var(--green-dark); }
+.content { flex: 1; padding: 24px 28px; }
+
+/* KPI CARDS */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+.kpi-card { background: #fff; border: 0.8px solid var(--border-color); border-radius: 10px; padding: 16px; }
+.kpi-label { font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 600; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+.kpi-value { font-family: 'DM Sans', sans-serif; font-size: 24px; font-weight: 700; color: var(--green); letter-spacing: -0.03em; line-height: 1; }
+.kpi-sub { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--border-color); margin-top: 4px; }
+
+/* TOOLBAR */
+.toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+.search-input { background: #fff; border: 0.8px solid var(--border-color); border-radius: 7px; padding: 8px 14px; font-size: 13px; color: var(--text-dark); font-family: 'DM Sans', sans-serif; width: 200px; outline: none; }
+.search-input:focus { border-color: var(--green); }
+.search-input::placeholder { color: var(--border-color); }
+.filter-select { background: #fff; border: 0.8px solid var(--border-color); border-radius: 7px; padding: 8px 14px; font-size: 13px; color: var(--text-dark); font-family: 'DM Sans', sans-serif; outline: none; cursor: pointer; }
+.filter-select:focus { border-color: var(--green); }
+.date-input { background: #fff; border: 0.8px solid var(--border-color); border-radius: 7px; padding: 8px 14px; font-size: 13px; color: var(--text-dark); font-family: 'DM Sans', sans-serif; outline: none; }
+.btn-outline { background: #fff; border: 0.8px solid var(--border-color); border-radius: 7px; padding: 8px 16px; font-size: 13px; color: var(--text-main); font-family: 'DM Sans', sans-serif; cursor: pointer; }
+
+/* TABLA */
+.table-wrap { background: #fff; border: 0.8px solid var(--border-color); border-radius: 10px; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+thead th { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 11px; color: var(--brown-dark); letter-spacing: 0.8px; text-transform: uppercase; padding: 11px 14px; text-align: left; border-bottom: 0.8px solid var(--border-color); background: #faf8f5; }
+tbody td { padding: 11px 14px; border-bottom: 0.8px solid #eee; vertical-align: middle; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: #faf8f5; }
+td.lote { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 700; color: var(--green-dark); }
+td.name { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 12px; color: var(--text-main); }
+td.mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dark); }
+.empty-state { text-align: center; padding: 48px; color: var(--border-color); font-size: 13px; }
+
+/* BADGES */
+.badge { display: inline-flex; align-items: center; gap: 4px; font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 10px; padding: 3px 10px; border-radius: 4px; white-space: nowrap; }
+.badge-extra     { background: #d1fae5; color: #065f46; }
+.badge-primera   { background: var(--blue-badge); color: var(--blue-text); }
+.badge-segunda   { background: var(--amber); color: var(--amber-text); }
+.badge-baba      { background: #fce7f3; color: #9d174d; }
+
+/* ACTION BTNS */
+.action-btn { background: #fff; border: 0.8px solid var(--text-main); border-radius: 5px; padding: 4px 10px; font-size: 11px; color: var(--text-main); cursor: pointer; margin-right: 4px; font-family: 'Inter', sans-serif; transition: all 0.15s; }
+.action-btn:hover { border-color: var(--green); color: var(--green-dark); }
+.action-btn.danger:hover { border-color: var(--red-text); color: var(--red-text); }
+
+/* MODAL */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: #fff; border-radius: 12px; width: 540px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,0,0.2); overflow: hidden; }
+.modal-header { padding: 18px 22px; border-bottom: 0.8px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+.modal-title { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 16px; color: var(--green); }
+.modal-close { background: none; border: none; color: var(--border-color); font-size: 20px; cursor: pointer; }
+.modal-body { padding: 20px 22px; display: flex; flex-direction: column; gap: 14px; max-height: 70vh; overflow-y: auto; }
+.modal-footer { padding: 14px 22px; border-top: 0.8px solid #eee; display: flex; justify-content: flex-end; gap: 10px; }
+.field label { display: block; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 11px; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px; }
+.field input, .field select, .field textarea { width: 100%; background: var(--cream); border: 0.8px solid var(--border-color); border-radius: 7px; padding: 9px 12px; font-size: 13px; color: var(--text-dark); font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.15s; }
+.field input:focus, .field select:focus { border-color: var(--green); }
+.field textarea { resize: vertical; min-height: 70px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.col-full { grid-column: 1 / -1; }
+.btn-cancel { background: #fff; border: 0.8px solid var(--border-color); border-radius: 7px; padding: 9px 20px; font-size: 13px; color: var(--text-main); font-family: 'DM Sans', sans-serif; cursor: pointer; }
+
+/* INFO BOX */
+.info-box { background: #f0f7e6; border: 0.8px solid var(--green); border-radius: 8px; padding: 12px 14px; font-size: 12px; color: var(--green-dark); display: flex; align-items: center; gap: 8px; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--brown-dark); color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 13px; font-family: 'DM Sans', sans-serif; z-index: 999; opacity: 0; transform: translateY(10px); transition: all 0.3s; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.error { background: #c0392b; }
+.toast.success { background: var(--green-dark); }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🫘</div>
+    <div class="logo-text">
+      <div class="brand"><span class="cacao">CACAO</span><span class="gest">GEST</span></div>
+      <div class="cycle">Ciclo 2026</div>
+    </div>
+  </div>
+  <div class="nav-body">
+    <div class="nav-section-label">PRINCIPAL</div>
+    <a class="nav-item" href="/dashboard.html"><span class="nav-icon">⊞</span> Inicio</a>
+    <div class="nav-section-label">PRODUCCIÓN</div>
+    <a class="nav-item" href="/cultivo.html"><span class="nav-icon">🌱</span> Cultivo y Mant.</a>
+    <a class="nav-item active" href="/cosecha.html"><span class="nav-icon">🫘</span> Cosecha</a>
+    <a class="nav-item" href="/fermentacion.html"><span class="nav-icon">🧪</span> Fermentación</a>
+    <a class="nav-item" href="/secado.html"><span class="nav-icon">☀️</span> Secado</a>
+    <div class="nav-section-label">OPERACIONES</div>
+    <a class="nav-item" href="/inventario.html"><span class="nav-icon">📦</span> Inventario</a>
+    <a class="nav-item" href="/ventas.html"><span class="nav-icon">💰</span> Ventas</a>
+    <a class="nav-item" href="/personal.html"><span class="nav-icon">👤</span> Personal</a>
+    <div class="nav-section-label">ADMIN</div>
+    <a class="nav-item" href="/proveedores.html"><span class="nav-icon">🚚</span> Proveedores</a>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar">🌿</div>
+    <div class="user-info">
+      <div class="uname">Administrador</div>
+      <div class="urole">admin123</div>
+    </div>
+    <span class="user-chevron">▲</span>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Cosecha</div>
+      <div class="page-sub">Registro de lotes — stock actualizado automáticamente</div>
+    </div>
+    <button class="btn-primary" onclick="abrirModal()">+ Registrar cosecha</button>
+  </div>
+
+  <div class="content">
+
+    <!-- KPI CARDS -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Total registros</div>
+        <div class="kpi-value" id="kpiTotal">—</div>
+        <div class="kpi-sub">lotes cosechados</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total kg cosechados</div>
+        <div class="kpi-value" id="kpiKg">—</div>
+        <div class="kpi-sub">kg acumulados</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Último lote</div>
+        <div class="kpi-value" id="kpiUltimoLote" style="font-size:16px;">—</div>
+        <div class="kpi-sub" id="kpiUltimaFecha">—</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Calidad predominante</div>
+        <div class="kpi-value" id="kpiCalidad" style="font-size:16px;">—</div>
+        <div class="kpi-sub">en registros actuales</div>
+      </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <input class="search-input" type="text" id="searchInput" placeholder="🔍 Buscar lote o parcela...">
+      <select class="filter-select" id="filtroCalidad" onchange="filtrar()">
+        <option value="">Todas las calidades</option>
+        <option value="EXTRA">Extra</option>
+        <option value="PRIMERA">Primera</option>
+        <option value="SEGUNDA">Segunda</option>
+        <option value="CACAO_EN_BABA">Cacao en baba</option>
+      </select>
+      <input class="date-input" type="date" id="filtroInicio" onchange="filtrar()" title="Desde">
+      <input class="date-input" type="date" id="filtroFin" onchange="filtrar()" title="Hasta">
+      <button class="btn-outline" onclick="limpiarFiltros()">✕ Limpiar</button>
+      <button class="btn-outline" onclick="cargarCosechas()">↻ Actualizar</button>
+    </div>
+
+    <!-- TABLA -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>N° Lote</th>
+            <th>Parcela</th>
+            <th>Fecha cosecha</th>
+            <th>Cantidad (kg)</th>
+            <th>Calidad</th>
+            <th>Producto inventario</th>
+            <th>Responsable</th>
+            <th>Observaciones</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="tablaBody">
+          <tr><td colspan="9" class="empty-state">Cargando registros...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL REGISTRO COSECHA -->
+<div class="modal-overlay" id="modalCosecha">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitulo">Registrar cosecha</span>
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cosechaId">
+
+      <div class="info-box" id="infoLote">
+        🫘 El número de lote se generará automáticamente al guardar
+      </div>
+
+      <div class="form-grid">
+        <div class="field col-full">
+          <label>Parcela *</label>
+          <select id="cParcelaId"></select>
+        </div>
+        <div class="field col-full">
+          <label>Producto en inventario * <span style="font-weight:400;text-transform:none;color:var(--border-color)">(donde se sumará el stock)</span></label>
+          <select id="cProductoId"></select>
+        </div>
+        <div class="field">
+          <label>Fecha de cosecha *</label>
+          <input type="date" id="cFecha">
+        </div>
+        <div class="field">
+          <label>Cantidad (kg) *</label>
+          <input type="number" id="cCantidad" placeholder="0.00" min="0.01" step="0.01">
+        </div>
+        <div class="field">
+          <label>Calidad del grano *</label>
+          <select id="cCalidad">
+            <option value="EXTRA">Extra</option>
+            <option value="PRIMERA">Primera</option>
+            <option value="SEGUNDA">Segunda</option>
+            <option value="CACAO_EN_BABA">Cacao en baba</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Responsable</label>
+          <input type="text" id="cResponsable" placeholder="Nombre del responsable">
+        </div>
+        <div class="field col-full">
+          <label>Observaciones</label>
+          <textarea id="cObservaciones" placeholder="Condiciones climáticas, incidencias..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-primary" onclick="guardar()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API_COSECHA  = 'http://localhost:8080/api/cosecha';
+  const API_PARCELAS = 'http://localhost:8080/api/cultivo/parcelas';
+  const API_INVENTARIO = 'http://localhost:8080/api/inventario/productos';
+
+  let cosechas  = [];
+  let parcelas  = [];
+  let productos = [];
+
+  // ── UTILS ──────────────────────────────────────────────
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.className = 'toast', 3000);
+  }
+
+  function formatFecha(f) {
+    if (!f) return '—';
+    const [y, m, d] = f.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
+  function calidadBadge(c) {
+    const map = {
+      EXTRA:        ['badge-extra',   '★ Extra'],
+      PRIMERA:      ['badge-primera', '◆ Primera'],
+      SEGUNDA:      ['badge-segunda', '◇ Segunda'],
+      CACAO_EN_BABA:['badge-baba',    '○ En baba']
+    };
+    const [cls, label] = map[c] || ['', c];
+    return `<span class="badge ${cls}">${label}</span>`;
+  }
+
+  // ── CARGA ──────────────────────────────────────────────
+  async function cargarTodo() {
+    await Promise.all([cargarParcelas(), cargarProductos(), cargarCosechas()]);
+  }
+
+  async function cargarParcelas() {
+    try {
+      const res = await fetch(API_PARCELAS);
+      parcelas = await res.json();
+      const sel = document.getElementById('cParcelaId');
+      sel.innerHTML = parcelas.map(p =>
+        `<option value="${p.id}">${p.nombre}</option>`).join('');
+    } catch {}
+  }
+
+  async function cargarProductos() {
+    try {
+      const res = await fetch(API_INVENTARIO);
+      productos = await res.json();
+      const sel = document.getElementById('cProductoId');
+      sel.innerHTML = productos.map(p =>
+        `<option value="${p.id}">${p.nombre} (${p.stockActual} ${p.unidadMedida})</option>`).join('');
+    } catch {}
+  }
+
+  async function cargarCosechas() {
+    try {
+      const res = await fetch(API_COSECHA);
+      cosechas = await res.json();
+      actualizarKPIs();
+      filtrar();
+    } catch {
+      document.getElementById('tablaBody').innerHTML =
+        '<tr><td colspan="9" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>';
+    }
+  }
+
+  // ── KPIs ───────────────────────────────────────────────
+  function actualizarKPIs() {
+    document.getElementById('kpiTotal').textContent = cosechas.length;
+
+    const totalKg = cosechas.reduce((sum, c) => sum + parseFloat(c.cantidadKg || 0), 0);
+    document.getElementById('kpiKg').textContent = totalKg.toLocaleString('es-EC', {maximumFractionDigits: 1});
+
+    if (cosechas.length > 0) {
+      const ultimo = cosechas[0];
+      document.getElementById('kpiUltimoLote').textContent  = ultimo.numeroLote || '—';
+      document.getElementById('kpiUltimaFecha').textContent = formatFecha(ultimo.fechaCosecha);
+    }
+
+    // Calidad predominante
+    const conteo = {};
+    cosechas.forEach(c => conteo[c.calidad] = (conteo[c.calidad] || 0) + 1);
+    const top = Object.entries(conteo).sort((a,b) => b[1]-a[1])[0];
+    if (top) {
+      const labels = { EXTRA:'Extra', PRIMERA:'Primera', SEGUNDA:'Segunda', CACAO_EN_BABA:'En baba' };
+      document.getElementById('kpiCalidad').textContent = labels[top[0]] || top[0];
+    }
+  }
+
+  // ── FILTROS ────────────────────────────────────────────
+  function filtrar() {
+    const texto   = document.getElementById('searchInput').value.toLowerCase().trim();
+    const calidad = document.getElementById('filtroCalidad').value;
+    const inicio  = document.getElementById('filtroInicio').value;
+    const fin     = document.getElementById('filtroFin').value;
+
+    const filtrados = cosechas.filter(c => {
+      const matchTexto   = !texto   || c.numeroLote?.toLowerCase().includes(texto) ||
+                           c.parcela?.nombre?.toLowerCase().includes(texto);
+      const matchCalidad = !calidad || c.calidad === calidad;
+      const matchInicio  = !inicio  || c.fechaCosecha >= inicio;
+      const matchFin     = !fin     || c.fechaCosecha <= fin;
+      return matchTexto && matchCalidad && matchInicio && matchFin;
+    });
+    renderTabla(filtrados);
+  }
+
+  document.getElementById('searchInput').addEventListener('input', filtrar);
+
+  function limpiarFiltros() {
+    document.getElementById('searchInput').value  = '';
+    document.getElementById('filtroCalidad').value = '';
+    document.getElementById('filtroInicio').value  = '';
+    document.getElementById('filtroFin').value     = '';
+    filtrar();
+  }
+
+  // ── RENDER ─────────────────────────────────────────────
+  function renderTabla(lista) {
+    const tbody = document.getElementById('tablaBody');
+    if (!lista.length) {
+      tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No hay registros de cosecha</td></tr>';
+      return;
+    }
+    tbody.innerHTML = lista.map(c => `
+      <tr>
+        <td class="lote">${c.numeroLote || '—'}</td>
+        <td class="name">${c.parcela?.nombre || '—'}</td>
+        <td class="mono">${formatFecha(c.fechaCosecha)}</td>
+        <td class="mono">${parseFloat(c.cantidadKg).toLocaleString('es-EC')} kg</td>
+        <td>${calidadBadge(c.calidad)}</td>
+        <td style="font-size:11px;color:var(--text-main)">${c.productoInventario?.nombre || '—'}</td>
+        <td style="font-size:12px;">${c.responsable || '—'}</td>
+        <td style="font-size:11px;color:var(--text-main);max-width:140px;">${c.observaciones || '—'}</td>
+        <td>
+          <button class="action-btn" onclick="abrirEditar(${c.id})">✎</button>
+          <button class="action-btn danger" onclick="eliminar(${c.id})">✕</button>
+        </td>
+      </tr>`).join('');
+  }
+
+  // ── MODAL ──────────────────────────────────────────────
+  function abrirModal() {
+    document.getElementById('modalTitulo').textContent = 'Registrar cosecha';
+    document.getElementById('cosechaId').value = '';
+    document.getElementById('cFecha').value    = new Date().toISOString().split('T')[0];
+    document.getElementById('cCantidad').value = '';
+    document.getElementById('cCalidad').value  = 'EXTRA';
+    document.getElementById('cResponsable').value   = '';
+    document.getElementById('cObservaciones').value = '';
+    document.getElementById('infoLote').style.display = '';
+    cargarProductos(); // refrescar stock actual
+    document.getElementById('modalCosecha').classList.add('open');
+  }
+
+  function abrirEditar(id) {
+    const c = cosechas.find(x => x.id === id);
+    if (!c) return;
+    document.getElementById('modalTitulo').textContent = 'Editar cosecha ' + c.numeroLote;
+    document.getElementById('cosechaId').value    = c.id;
+    document.getElementById('cParcelaId').value   = c.parcela?.id || '';
+    document.getElementById('cProductoId').value  = c.productoInventario?.id || '';
+    document.getElementById('cFecha').value       = c.fechaCosecha || '';
+    document.getElementById('cCantidad').value    = c.cantidadKg;
+    document.getElementById('cCalidad').value     = c.calidad;
+    document.getElementById('cResponsable').value = c.responsable   || '';
+    document.getElementById('cObservaciones').value = c.observaciones || '';
+    document.getElementById('infoLote').style.display = 'none';
+    document.getElementById('modalCosecha').classList.add('open');
+  }
+
+  async function guardar() {
+    const id         = document.getElementById('cosechaId').value;
+    const parcelaId  = document.getElementById('cParcelaId').value;
+    const productoId = document.getElementById('cProductoId').value;
+    const fecha      = document.getElementById('cFecha').value;
+    const cantidad   = document.getElementById('cCantidad').value;
+    const calidad    = document.getElementById('cCalidad').value;
+
+    if (!parcelaId || !productoId || !fecha || !cantidad) {
+      showToast('Completa todos los campos obligatorios', 'error'); return;
+    }
+
+    const body = {
+      fechaCosecha:  fecha,
+      cantidadKg:    parseFloat(cantidad),
+      calidad,
+      responsable:   document.getElementById('cResponsable').value.trim()   || null,
+      observaciones: document.getElementById('cObservaciones').value.trim() || null
+    };
+
+    try {
+      let res;
+      if (id) {
+        res = await fetch(`${API_COSECHA}/${id}`, {
+          method: 'PUT',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(body)
+        });
+      } else {
+        res = await fetch(`${API_COSECHA}/parcela/${parcelaId}/producto/${productoId}`, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(body)
+        });
+      }
+      const data = await res.json();
+      if (!res.ok) { showToast('Error: ' + (data.error || 'Verifica los datos'), 'error'); return; }
+      cerrarModal();
+      showToast(id ? 'Cosecha actualizada ✓' : `Cosecha registrada ✓ — Lote ${data.numeroLote}`);
+      cargarTodo();
+    } catch { showToast('Error al guardar', 'error'); }
+  }
+
+  async function eliminar(id) {
+    const c = cosechas.find(x => x.id === id);
+    if (!confirm(`¿Eliminar lote ${c?.numeroLote}? Se revertirán ${c?.cantidadKg} kg del inventario.`)) return;
+    try {
+      const res = await fetch(`${API_COSECHA}/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const data = await res.json();
+        showToast('Error: ' + data.error, 'error'); return;
+      }
+      showToast('Cosecha eliminada y stock revertido');
+      cargarTodo();
+    } catch { showToast('Error al eliminar', 'error'); }
+  }
+
+  function cerrarModal() {
+    document.getElementById('modalCosecha').classList.remove('open');
+  }
+  document.getElementById('modalCosecha').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalCosecha'))
+      document.getElementById('modalCosecha').classList.remove('open');
+  });
+
+  // INIT
+  cargarTodo();
+</script>
+</body>
+</html>
