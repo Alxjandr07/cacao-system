@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cosecha — CacaoGest</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=DM+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/cacaogest.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🫘</div>
+    <div class="logo-text">
+      <div class="brand"><span class="cacao">CACAO</span><span class="gest">GEST</span></div>
+      <div class="cycle">Ciclo 2026</div>
+    </div>
+  </div>
+  <div class="nav-body">
+    <div class="nav-section-label">PRINCIPAL</div>
+    <a class="nav-item" href="dashboard.html"><span class="nav-icon">⊞</span> Dashboard</a>
+
+    <div class="nav-section-label">GESTIÓN</div>
+    <a class="nav-item" href="usuarios.html"><span class="nav-icon">👥</span> Usuarios y Roles</a>
+    <a class="nav-item" href="personal.html"><span class="nav-icon">👤</span> Gestión de Personal</a>
+    <a class="nav-item" href="proveedores.html"><span class="nav-icon">🚚</span> Proveedores</a>
+
+    <div class="nav-section-label">PRODUCCIÓN</div>
+    <a class="nav-item" href="inventario.html"><span class="nav-icon">📦</span> Inventario</a>
+    <a class="nav-item" href="cultivo.html"><span class="nav-icon">🌱</span> Cultivo y Mant.</a>
+    <a class="nav-item active" href="cosecha.html"><span class="nav-icon">🫘</span> Cosecha</a>
+
+    <div class="nav-section-label">COMERCIAL</div>
+    <a class="nav-item" href="ventas.html"><span class="nav-icon">💰</span> Ventas</a>
+    <a class="nav-item" href="facturacion.html"><span class="nav-icon">🧾</span> Facturación y Reportes</a>
+    <a class="nav-item" href="trazabilidad.html"><span class="nav-icon">🔍</span> Trazabilidad</a>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar">🌿</div>
+    <div class="user-info">
+      <div class="uname">Administrador</div>
+      <div class="urole">admin123</div>
+    </div>
+    <span class="user-chevron">▲</span>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Cosecha</div>
+      <div class="page-sub">Registro de lotes — stock actualizado automáticamente</div>
+    </div>
+    <button class="btn-primary" onclick="abrirModal()">+ Registrar cosecha</button>
+  </div>
+
+  <div class="content">
+
+    <!-- KPI CARDS -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Total registros</div>
+        <div class="kpi-value" id="kpiTotal">—</div>
+        <div class="kpi-sub">lotes cosechados</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total kg cosechados</div>
+        <div class="kpi-value" id="kpiKg">—</div>
+        <div class="kpi-sub">kg acumulados</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Último lote</div>
+        <div class="kpi-value" id="kpiUltimoLote" style="font-size:16px">—</div>
+        <div class="kpi-sub" id="kpiUltimaFecha">—</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Calidad predominante</div>
+        <div class="kpi-value" id="kpiCalidad" style="font-size:16px">—</div>
+        <div class="kpi-sub">en registros actuales</div>
+      </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <input class="search-input" type="text" id="searchInput" placeholder="🔍 Buscar lote o parcela...">
+      <select class="filter-select" id="filtroCalidad" onchange="filtrar()">
+        <option value="">Todas las calidades</option>
+        <option value="EXTRA">Extra</option>
+        <option value="PRIMERA">Primera</option>
+        <option value="SEGUNDA">Segunda</option>
+        <option value="CACAO_EN_BABA">Cacao en baba</option>
+      </select>
+      <input class="date-input" type="date" id="filtroInicio" onchange="filtrar()" title="Desde">
+      <input class="date-input" type="date" id="filtroFin"    onchange="filtrar()" title="Hasta">
+      <button class="btn-outline" onclick="limpiarFiltros()">✕ Limpiar</button>
+      <button class="btn-outline" onclick="cargarCosechas()">↻ Actualizar</button>
+    </div>
+
+    <!-- TABLA -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>N° Lote</th><th>Parcela</th><th>Fecha cosecha</th>
+            <th>Cantidad (kg)</th><th>Calidad</th><th>Producto inventario</th>
+            <th>Responsable</th><th>Observaciones</th><th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="tablaBody">
+          <tr><td colspan="9" class="empty-state">Cargando registros...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL COSECHA -->
+<div class="modal-overlay" id="modalCosecha">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitulo">Registrar cosecha</span>
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cosechaId">
+      <div class="info-box" id="infoLote">
+        🫘 El número de lote se generará automáticamente al guardar
+      </div>
+      <div class="form-grid">
+        <div class="field col-full"><label>Parcela *</label><select id="cParcelaId"></select></div>
+        <div class="field col-full">
+          <label>Producto en inventario * <span style="font-weight:400;text-transform:none;color:var(--border-color)">(donde se sumará el stock)</span></label>
+          <select id="cProductoId"></select>
+        </div>
+        <div class="field"><label>Fecha de cosecha *</label><input type="date" id="cFecha"></div>
+        <div class="field"><label>Cantidad (kg) *</label><input type="number" id="cCantidad" placeholder="0.00" min="0.01" step="0.01"></div>
+        <div class="field">
+          <label>Calidad del grano *</label>
+          <select id="cCalidad">
+            <option value="EXTRA">Extra</option>
+            <option value="PRIMERA">Primera</option>
+            <option value="SEGUNDA">Segunda</option>
+            <option value="CACAO_EN_BABA">Cacao en baba</option>
+          </select>
+        </div>
+        <div class="field"><label>Responsable</label><input type="text" id="cResponsable" placeholder="Nombre del responsable"></div>
+        <div class="field col-full"><label>Observaciones</label><textarea id="cObservaciones" placeholder="Condiciones climáticas, incidencias..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-primary" onclick="guardar()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="js/cosecha.js"></script>
+</body>
+</html>

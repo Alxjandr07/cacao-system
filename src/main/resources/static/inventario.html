@@ -1,472 +1,15 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Inventario — CacaoGest</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=DM+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --sidebar-bg1: #3b1f13;
-  --sidebar-bg2: #5b341c;
-  --sidebar-border: #2e3a32;
-  --green: #7baa2f;
-  --green-dark: #678e27;
-  --cream: #f4f1ec;
-  --brown-dark: #382011;
-  --brown-mid: #7c4a2b;
-  --text-main: #5a6b5e;
-  --text-dark: #1a1a1a;
-  --border-color: #9aab9e;
-  --amber: #fde68a;
-  --amber-border: #b49a33;
-  --amber-text: #7c4a2b;
-  --blue-badge: #b1cff3;
-  --blue-text: #0e6dcb;
-  --red-badge: #fca5a5;
-  --red-text: #ff3f3f;
-  --white: #ffffff;
-}
-
-body {
-  font-family: 'DM Sans', sans-serif;
-  background: var(--cream);
-  display: flex;
-  min-height: 100vh;
-  color: var(--text-dark);
-}
-
-/* ── SIDEBAR ─────────────────────────────────────────── */
-.sidebar {
-  width: 220px;
-  min-width: 220px;
-  background: linear-gradient(180deg, var(--sidebar-bg1) 0%, var(--sidebar-bg2) 100%);
-  border-right: 0.8px solid var(--sidebar-border);
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  position: sticky;
-  top: 0;
-}
-
-.sidebar-logo {
-  padding: 24px 20px 20px;
-  border-bottom: 0.8px solid rgba(255,255,255,0.12);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.logo-icon {
-  width: 48px;
-  height: 48px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-}
-
-.logo-text .brand {
-  font-family: 'Inter', sans-serif;
-  font-weight: 800;
-  font-size: 20px;
-  letter-spacing: -0.3px;
-  line-height: 1;
-}
-.logo-text .brand .cacao { color: #fff; }
-.logo-text .brand .gest { color: var(--green); }
-.logo-text .cycle {
-  font-family: 'Inter', sans-serif;
-  font-weight: 700;
-  font-size: 11px;
-  color: var(--brown-mid);
-  margin-top: 3px;
-}
-
-.nav-body { flex: 1; padding: 16px 12px; overflow-y: auto; }
-
-.nav-section-label {
-  font-family: 'Inter', sans-serif;
-  font-weight: 700;
-  font-size: 12px;
-  color: var(--green);
-  letter-spacing: 1px;
-  padding: 0 8px;
-  margin: 14px 0 6px;
-}
-.nav-section-label:first-child { margin-top: 0; }
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 10px;
-  border-radius: 6px;
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
-  font-size: 14px;
-  color: #e8ede9;
-  cursor: pointer;
-  margin-bottom: 2px;
-  transition: background 0.15s;
-  text-decoration: none;
-}
-.nav-item:hover { background: rgba(255,255,255,0.08); }
-.nav-item.active { background: var(--green-dark); }
-.nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
-
-.sidebar-user {
-  margin: 12px;
-  background: var(--brown-dark);
-  border-radius: 12px;
-  padding: 14px 16px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
-.user-avatar {
-  width: 40px; height: 40px; border-radius: 50%;
-  background: rgba(255,255,255,0.15);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px; flex-shrink: 0;
-}
-.user-info .uname {
-  font-family: 'Inter', sans-serif; font-weight: 500;
-  font-size: 13px; color: #fff;
-}
-.user-info .urole {
-  font-family: 'Inter', sans-serif; font-weight: 500;
-  font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 1px;
-}
-.user-chevron { margin-left: auto; color: rgba(255,255,255,0.4); font-size: 14px; }
-
-/* ── MAIN ─────────────────────────────────────────────── */
-.main { flex: 1; display: flex; flex-direction: column; background: var(--cream); }
-
-.topbar {
-  background: var(--cream);
-  border-bottom: 0.8px solid var(--border-color);
-  padding: 16px 28px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.page-title {
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 600;
-  font-size: 20px;
-  color: var(--green);
-  letter-spacing: -0.6px;
-}
-.page-sub {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
-  color: var(--text-main);
-  margin-top: 2px;
-}
-.btn-primary {
-  background: var(--green);
-  color: #fff;
-  border: none;
-  border-radius: 7px;
-  padding: 9px 18px;
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.btn-primary:hover { background: var(--green-dark); }
-
-/* ── CONTENT ──────────────────────────────────────────── */
-.content { flex: 1; padding: 24px 28px; }
-
-/* ALERTA */
-.alert-banner {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--amber);
-  border: 0.8px solid var(--amber-border);
-  border-radius: 6px;
-  padding: 12px 16px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
-  color: var(--amber-text);
-  margin-bottom: 20px;
-}
-.alert-banner.hidden { display: none; }
-
-/* TOOLBAR */
-.toolbar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
-  flex-wrap: wrap;
-}
-.search-input {
-  background: #fff;
-  border: 0.8px solid var(--border-color);
-  border-radius: 7px;
-  padding: 8px 14px;
-  font-size: 13px;
-  color: var(--text-dark);
-  font-family: 'DM Sans', sans-serif;
-  width: 230px;
-  outline: none;
-}
-.search-input:focus { border-color: var(--green); }
-.search-input::placeholder { color: var(--border-color); }
-.filter-select {
-  background: #fff;
-  border: 0.8px solid var(--border-color);
-  border-radius: 7px;
-  padding: 8px 14px;
-  font-size: 13px;
-  color: var(--text-dark);
-  font-family: 'DM Sans', sans-serif;
-  outline: none;
-  cursor: pointer;
-}
-.filter-select:focus { border-color: var(--green); }
-.btn-outline {
-  background: #fff;
-  border: 0.8px solid var(--border-color);
-  border-radius: 7px;
-  padding: 8px 16px;
-  font-size: 13px;
-  color: var(--text-main);
-  font-family: 'DM Sans', sans-serif;
-  cursor: pointer;
-}
-
-/* TABLA */
-.table-wrap {
-  background: #fff;
-  border: 0.8px solid var(--border-color);
-  border-radius: 10px;
-  overflow: hidden;
-}
-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-thead th {
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
-  font-size: 11px;
-  color: var(--brown-dark);
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  padding: 11px 14px;
-  text-align: left;
-  border-bottom: 0.8px solid var(--border-color);
-  background: #faf8f5;
-}
-tbody td {
-  padding: 11px 14px;
-  border-bottom: 0.8px solid #eee;
-  vertical-align: middle;
-}
-tbody tr:last-child td { border-bottom: none; }
-tbody tr:hover { background: #faf8f5; }
-td.prod-name {
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 500;
-  font-size: 12px;
-  color: var(--text-main);
-}
-td.mono {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
-  color: var(--text-dark);
-}
-
-/* BADGES */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 500;
-  font-size: 10px;
-  padding: 3px 10px;
-  border-radius: 4px;
-  white-space: nowrap;
-}
-.badge-disponible { background: var(--blue-badge); color: var(--blue-text); }
-.badge-bajo { background: var(--amber); color: var(--amber-text); }
-.badge-critico { background: var(--red-badge); color: var(--red-text); }
-.badge-cacao { background: #d4edda; color: #155724; }
-.badge-insumo { background: #e8d5f5; color: #6f2da8; }
-.badge-dot {
-  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
-}
-.dot-blue { background: var(--blue-text); }
-.dot-amber { background: var(--amber-border); }
-.dot-red { background: var(--red-text); }
-
-/* ACTION BTNS */
-.action-btn {
-  background: #fff;
-  border: 0.8px solid var(--text-main);
-  border-radius: 5px;
-  padding: 4px 10px;
-  font-size: 11px;
-  color: var(--text-main);
-  cursor: pointer;
-  margin-right: 4px;
-  font-family: 'Inter', sans-serif;
-  transition: all 0.15s;
-}
-.action-btn:hover { border-color: var(--green); color: var(--green-dark); }
-.action-btn.danger:hover { border-color: var(--red-text); color: var(--red-text); }
-
-.empty-state {
-  text-align: center;
-  padding: 40px;
-  color: var(--border-color);
-  font-size: 13px;
-}
-
-/* ── MODALS ───────────────────────────────────────────── */
-.modal-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  z-index: 200;
-  align-items: center;
-  justify-content: center;
-}
-.modal-overlay.open { display: flex; }
-.modal {
-  background: #fff;
-  border-radius: 12px;
-  width: 500px;
-  max-width: 95vw;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-  overflow: hidden;
-}
-.modal-header {
-  padding: 18px 22px;
-  border-bottom: 0.8px solid #eee;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.modal-title {
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 600;
-  font-size: 16px;
-  color: var(--green);
-}
-.modal-close {
-  background: none; border: none;
-  color: var(--border-color); font-size: 20px; cursor: pointer;
-}
-.modal-body { padding: 20px 22px; display: flex; flex-direction: column; gap: 14px; }
-.modal-footer {
-  padding: 14px 22px;
-  border-top: 0.8px solid #eee;
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-.field label {
-  display: block;
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  font-size: 11px;
-  color: var(--text-main);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  margin-bottom: 6px;
-}
-.field input, .field select, .field textarea {
-  width: 100%;
-  background: var(--cream);
-  border: 0.8px solid var(--border-color);
-  border-radius: 7px;
-  padding: 9px 12px;
-  font-size: 13px;
-  color: var(--text-dark);
-  font-family: 'DM Sans', sans-serif;
-  outline: none;
-  transition: border-color 0.15s;
-}
-.field input:focus, .field select:focus { border-color: var(--green); }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.col-full { grid-column: 1 / -1; }
-.btn-cancel {
-  background: #fff;
-  border: 0.8px solid var(--border-color);
-  border-radius: 7px;
-  padding: 9px 20px;
-  font-size: 13px;
-  color: var(--text-main);
-  font-family: 'DM Sans', sans-serif;
-  cursor: pointer;
-}
-
-/* Movimiento radio */
-.mov-types { display: flex; gap: 10px; }
-.mov-type-label {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px;
-  border: 0.8px solid var(--border-color);
-  border-radius: 7px;
-  cursor: pointer;
-  font-size: 13px;
-  color: var(--text-main);
-  font-family: 'DM Sans', sans-serif;
-  transition: all 0.15s;
-}
-.mov-type-label input { display: none; }
-.mov-type-label.selected-entrada {
-  border-color: var(--green);
-  background: #f0f7e6;
-  color: var(--green-dark);
-  font-weight: 600;
-}
-.mov-type-label.selected-salida {
-  border-color: var(--red-text);
-  background: #fff0f0;
-  color: var(--red-text);
-  font-weight: 600;
-}
-
-/* Toast */
-.toast {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  background: var(--brown-dark);
-  color: #fff;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-family: 'DM Sans', sans-serif;
-  z-index: 999;
-  opacity: 0;
-  transform: translateY(10px);
-  transition: all 0.3s;
-  pointer-events: none;
-}
-.toast.show { opacity: 1; transform: translateY(0); }
-.toast.error { background: #c0392b; }
-.toast.success { background: var(--green-dark); }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventario — CacaoGest</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=DM+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/cacaogest.css">
 </head>
 <body>
 
-<!-- ── SIDEBAR ── -->
+<!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="sidebar-logo">
     <div class="logo-icon">🫘</div>
@@ -477,39 +20,22 @@ td.mono {
   </div>
   <div class="nav-body">
     <div class="nav-section-label">PRINCIPAL</div>
-    <a class="nav-item" href="/dashboard.html">
-      <span class="nav-icon">⊞</span> Inicio
-    </a>
+    <a class="nav-item" href="dashboard.html"><span class="nav-icon">⊞</span> Dashboard</a>
+
+    <div class="nav-section-label">GESTIÓN</div>
+    <a class="nav-item" href="usuarios.html"><span class="nav-icon">👥</span> Usuarios y Roles</a>
+    <a class="nav-item" href="personal.html"><span class="nav-icon">👤</span> Gestión de Personal</a>
+    <a class="nav-item" href="proveedores.html"><span class="nav-icon">🚚</span> Proveedores</a>
 
     <div class="nav-section-label">PRODUCCIÓN</div>
-    <a class="nav-item" href="/cultivo.html">
-      <span class="nav-icon">🌱</span> Cultivo y Mant.
-    </a>
-    <a class="nav-item" href="/cosecha.html">
-      <span class="nav-icon">🫘</span> Cosecha
-    </a>
-    <a class="nav-item" href="/fermentacion.html">
-      <span class="nav-icon">🧪</span> Fermentación
-    </a>
-    <a class="nav-item" href="/secado.html">
-      <span class="nav-icon">☀️</span> Secado
-    </a>
+    <a class="nav-item active" href="inventario.html"><span class="nav-icon">📦</span> Inventario</a>
+    <a class="nav-item" href="cultivo.html"><span class="nav-icon">🌱</span> Cultivo y Mant.</a>
+    <a class="nav-item" href="cosecha.html"><span class="nav-icon">🫘</span> Cosecha</a>
 
-    <div class="nav-section-label">OPERACIONES</div>
-    <a class="nav-item active" href="/inventario.html">
-      <span class="nav-icon">📦</span> Inventario
-    </a>
-    <a class="nav-item" href="/ventas.html">
-      <span class="nav-icon">💰</span> Ventas
-    </a>
-    <a class="nav-item" href="/personal.html">
-      <span class="nav-icon">👤</span> Personal
-    </a>
-
-    <div class="nav-section-label">ADMIN</div>
-    <a class="nav-item" href="/proveedores.html">
-      <span class="nav-icon">🚚</span> Proveedores
-    </a>
+    <div class="nav-section-label">COMERCIAL</div>
+    <a class="nav-item" href="ventas.html"><span class="nav-icon">💰</span> Ventas</a>
+    <a class="nav-item" href="facturacion.html"><span class="nav-icon">🧾</span> Facturación y Reportes</a>
+    <a class="nav-item" href="trazabilidad.html"><span class="nav-icon">🔍</span> Trazabilidad</a>
   </div>
   <div class="sidebar-user">
     <div class="user-avatar">🌿</div>
@@ -521,7 +47,7 @@ td.mono {
   </div>
 </aside>
 
-<!-- ── MAIN ── -->
+<!-- MAIN -->
 <div class="main">
   <div class="topbar">
     <div>
@@ -532,13 +58,10 @@ td.mono {
   </div>
 
   <div class="content">
-
-    <!-- ALERTA -->
     <div class="alert-banner hidden" id="alertaBanner">
       ⚠ <span id="alertaTexto"></span>
     </div>
 
-    <!-- TOOLBAR -->
     <div class="toolbar">
       <input class="search-input" type="text" id="searchInput" placeholder="🔍 Buscar producto...">
       <select class="filter-select" id="filtroTipo" onchange="filtrar()">
@@ -549,15 +72,14 @@ td.mono {
       <button class="btn-outline" onclick="cargarProductos()">↻ Actualizar</button>
     </div>
 
-    <!-- TABLA -->
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
             <th>Producto</th>
-            <th>Lote origen</th>
-            <th>Stock (kg)</th>
-            <th>Stock mín.</th>
+            <th>Tipo</th>
+            <th>Stock actual</th>
+            <th>Stock mínimo</th>
             <th>Últ. movimiento</th>
             <th>Estado</th>
             <th>Acción</th>
@@ -568,15 +90,14 @@ td.mono {
         </tbody>
       </table>
     </div>
-
   </div>
 </div>
 
-<!-- ── MODAL: NUEVO/EDITAR PRODUCTO ── -->
+<!-- MODAL PRODUCTO -->
 <div class="modal-overlay" id="modalProducto">
   <div class="modal">
     <div class="modal-header">
-      <span class="modal-title" id="modalProductoTitulo">Nuevo ingreso</span>
+      <span class="modal-title" id="modalProductoTitulo">Nuevo producto</span>
       <button class="modal-close" onclick="cerrarModal('modalProducto')">✕</button>
     </div>
     <div class="modal-body">
@@ -618,7 +139,7 @@ td.mono {
   </div>
 </div>
 
-<!-- ── MODAL: MOVIMIENTO ── -->
+<!-- MODAL MOVIMIENTO -->
 <div class="modal-overlay" id="modalMovimiento">
   <div class="modal">
     <div class="modal-header">
@@ -646,7 +167,7 @@ td.mono {
       </div>
       <div class="field">
         <label>Motivo</label>
-        <input type="text" id="movMotivo" placeholder="Ej: Cosecha lote #F-2024-18, Venta exportadora...">
+        <input type="text" id="movMotivo" placeholder="Ej: Cosecha lote #C-2026-001, Venta...">
       </div>
     </div>
     <div class="modal-footer">
@@ -656,235 +177,7 @@ td.mono {
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
-
-<script>
-  const API = 'http://localhost:8080/api/inventario';
-  let productos = [];
-
-  // ── UTILIDADES ─────────────────────────────────────────
-  function showToast(msg, type = 'success') {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = `toast ${type} show`;
-    setTimeout(() => t.className = 'toast', 3000);
-  }
-
-  function formatFecha(isoStr) {
-    if (!isoStr) return '—';
-    const d = new Date(isoStr);
-    const hoy = new Date();
-    const ayer = new Date(); ayer.setDate(ayer.getDate() - 1);
-    if (d.toDateString() === hoy.toDateString()) return 'Hoy';
-    if (d.toDateString() === ayer.toDateString()) return 'Ayer';
-    return d.toLocaleDateString('es-EC', { day:'2-digit', month:'2-digit', year:'numeric' });
-  }
-
-  // ── CARGA ──────────────────────────────────────────────
-  async function cargarProductos() {
-    try {
-      const res = await fetch(`${API}/productos`);
-      if (!res.ok) throw new Error();
-      productos = await res.json();
-      filtrar();
-      cargarAlertas();
-    } catch {
-      document.getElementById('tablaBody').innerHTML =
-        '<tr><td colspan="7" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>';
-    }
-  }
-
-  async function cargarAlertas() {
-    try {
-      const res = await fetch(`${API}/alertas`);
-      const alertas = await res.json();
-      const banner = document.getElementById('alertaBanner');
-      if (alertas.length > 0) {
-        banner.classList.remove('hidden');
-        document.getElementById('alertaTexto').textContent =
-          `${alertas.length} producto(s) con stock bajo o crítico. Se recomienda planificar nueva cosecha o compra de insumos.`;
-      } else {
-        banner.classList.add('hidden');
-      }
-    } catch {}
-  }
-
-  // ── RENDER ─────────────────────────────────────────────
-  function renderTabla(lista) {
-    const tbody = document.getElementById('tablaBody');
-    if (!lista.length) {
-      tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No hay productos registrados</td></tr>';
-      return;
-    }
-    tbody.innerHTML = lista.map(p => {
-      const stock = parseFloat(p.stockActual);
-      const min   = parseFloat(p.stockMinimo);
-      const critico    = stock === 0;
-      const bajo       = !critico && stock <= min;
-      const disponible = !critico && !bajo;
-
-      const estadoBadge = critico
-        ? `<span class="badge badge-critico"><span class="badge-dot dot-red"></span>Crítico</span>`
-        : bajo
-          ? `<span class="badge badge-bajo"><span class="badge-dot dot-amber"></span>Stock bajo</span>`
-          : `<span class="badge badge-disponible"><span class="badge-dot dot-blue"></span>Disponible</span>`;
-
-      const tipoBadge = p.tipo === 'CACAO'
-        ? `<span class="badge badge-cacao">Cacao</span>`
-        : `<span class="badge badge-insumo">Insumo</span>`;
-
-      const ultimaMov = formatFecha(p.actualizadoEn);
-
-      return `<tr>
-        <td class="prod-name">${p.nombre}</td>
-        <td class="mono">${p.descripcion ? '#' + p.descripcion : '—'}</td>
-        <td class="mono">${stock.toLocaleString('es-EC')} ${p.unidadMedida}</td>
-        <td class="mono">${min.toLocaleString('es-EC')} ${p.unidadMedida}</td>
-        <td>${ultimaMov}</td>
-        <td>${estadoBadge}</td>
-        <td>
-          <button class="action-btn" onclick="abrirMovimiento(${p.id})" title="Registrar movimiento">↕ Mov.</button>
-          <button class="action-btn" onclick="abrirEditar(${p.id})" title="Editar">✎</button>
-          <button class="action-btn danger" onclick="eliminar(${p.id})" title="Eliminar">✕</button>
-        </td>
-      </tr>`;
-    }).join('');
-  }
-
-  // ── FILTROS ────────────────────────────────────────────
-  function filtrar() {
-    const tipo  = document.getElementById('filtroTipo').value;
-    const texto = document.getElementById('searchInput').value.toLowerCase().trim();
-    const filtrados = productos.filter(p =>
-      (!tipo  || p.tipo === tipo) &&
-      (!texto || p.nombre.toLowerCase().includes(texto))
-    );
-    renderTabla(filtrados);
-  }
-  document.getElementById('searchInput').addEventListener('input', filtrar);
-
-  // ── MODAL PRODUCTO ─────────────────────────────────────
-  function abrirModalProducto() {
-    document.getElementById('modalProductoTitulo').textContent = 'Nuevo ingreso';
-    document.getElementById('productoId').value = '';
-    ['pNombre','pUnidad','pDescripcion'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('pTipo').value    = 'CACAO';
-    document.getElementById('pStock').value   = '';
-    document.getElementById('pStockMin').value = '';
-    document.getElementById('modalProducto').classList.add('open');
-  }
-
-  function abrirEditar(id) {
-    const p = productos.find(x => x.id === id);
-    if (!p) return;
-    document.getElementById('modalProductoTitulo').textContent = 'Editar producto';
-    document.getElementById('productoId').value   = p.id;
-    document.getElementById('pNombre').value      = p.nombre;
-    document.getElementById('pTipo').value        = p.tipo;
-    document.getElementById('pUnidad').value      = p.unidadMedida;
-    document.getElementById('pStock').value       = p.stockActual;
-    document.getElementById('pStockMin').value    = p.stockMinimo;
-    document.getElementById('pDescripcion').value = p.descripcion || '';
-    document.getElementById('modalProducto').classList.add('open');
-  }
-
-  async function guardarProducto() {
-    const nombre = document.getElementById('pNombre').value.trim();
-    const unidad = document.getElementById('pUnidad').value.trim();
-    const stock  = document.getElementById('pStock').value;
-    const stockM = document.getElementById('pStockMin').value;
-    if (!nombre || !unidad || stock === '' || stockM === '') {
-      showToast('Completa todos los campos obligatorios', 'error'); return;
-    }
-    const id   = document.getElementById('productoId').value;
-    const body = {
-      nombre,
-      tipo:         document.getElementById('pTipo').value,
-      unidadMedida: unidad,
-      stockActual:  parseFloat(stock),
-      stockMinimo:  parseFloat(stockM),
-      descripcion:  document.getElementById('pDescripcion').value.trim()
-    };
-    const url    = id ? `${API}/productos/${id}` : `${API}/productos`;
-    const method = id ? 'PUT' : 'POST';
-    try {
-      const res = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
-      if (!res.ok) throw new Error();
-      cerrarModal('modalProducto');
-      showToast(id ? 'Producto actualizado ✓' : 'Producto creado ✓');
-      cargarProductos();
-    } catch {
-      showToast('Error al guardar el producto', 'error');
-    }
-  }
-
-  async function eliminar(id) {
-    if (!confirm('¿Eliminar este producto del inventario?')) return;
-    try {
-      await fetch(`${API}/productos/${id}`, { method: 'DELETE' });
-      showToast('Producto eliminado');
-      cargarProductos();
-    } catch {
-      showToast('Error al eliminar', 'error');
-    }
-  }
-
-  // ── MODAL MOVIMIENTO ───────────────────────────────────
-  function abrirMovimiento(id) {
-    document.getElementById('movProductoId').value  = id;
-    document.getElementById('movCantidad').value    = '';
-    document.getElementById('movMotivo').value      = '';
-    document.querySelector('input[name=movTipo][value=ENTRADA]').checked = true;
-    updateMovLabel();
-    document.getElementById('modalMovimiento').classList.add('open');
-  }
-
-  function updateMovLabel() {
-    const val = document.querySelector('input[name=movTipo]:checked').value;
-    document.getElementById('labelEntrada').className =
-      'mov-type-label' + (val === 'ENTRADA' ? ' selected-entrada' : '');
-    document.getElementById('labelSalida').className =
-      'mov-type-label' + (val === 'SALIDA' ? ' selected-salida' : '');
-  }
-
-  async function guardarMovimiento() {
-    const cantidad = document.getElementById('movCantidad').value;
-    if (!cantidad || parseFloat(cantidad) <= 0) {
-      showToast('Ingresa una cantidad válida', 'error'); return;
-    }
-    const body = {
-      productoId: document.getElementById('movProductoId').value,
-      tipo:       document.querySelector('input[name=movTipo]:checked').value,
-      cantidad,
-      motivo:     document.getElementById('movMotivo').value.trim()
-    };
-    try {
-      const res = await fetch(`${API}/movimientos`, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(body)
-      });
-      const data = await res.json();
-      if (!res.ok) { showToast('Error: ' + (data.error || 'Stock insuficiente'), 'error'); return; }
-      cerrarModal('modalMovimiento');
-      showToast('Movimiento registrado ✓');
-      cargarProductos();
-    } catch {
-      showToast('Error al registrar movimiento', 'error');
-    }
-  }
-
-  // ── HELPERS ────────────────────────────────────────────
-  function cerrarModal(id) {
-    document.getElementById(id).classList.remove('open');
-  }
-  document.querySelectorAll('.modal-overlay').forEach(m => {
-    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
-  });
-
-  // INIT
-  cargarProductos();
-</script>
+<script src="js/inventario.js"></script>
 </body>
 </html>
