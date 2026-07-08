@@ -1,5 +1,5 @@
 /* =====================================================
-   CacaoGest — cosecha.js
+   CacaoGest — cosecha.js (con validaciones)
    ===================================================== */
 const API_COSECHA    = 'http://localhost:8080/api/cosecha';
 const API_PARCELAS   = 'http://localhost:8080/api/cultivo/parcelas';
@@ -32,6 +32,21 @@ function calidadBadge(c) {
   return `<span class="badge ${cls}">${label}</span>`;
 }
 
+function limpiarErrores() {
+  document.querySelectorAll('#modalCosecha .field-error').forEach(e => e.remove());
+  document.querySelectorAll('#modalCosecha .input-error').forEach(e => e.classList.remove('input-error'));
+}
+
+function marcarError(inputId, msg) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  input.classList.add('input-error');
+  const err = document.createElement('span');
+  err.className = 'field-error';
+  err.textContent = msg;
+  input.parentNode.appendChild(err);
+}
+
 // ── CARGA ───────────────────────────────────────────
 async function cargarTodo() {
   await Promise.all([cargarParcelas(), cargarProductos(), cargarCosechas()]);
@@ -40,26 +55,37 @@ async function cargarTodo() {
 async function cargarParcelas() {
   try {
     const res = await fetch(API_PARCELAS);
+    if (!res.ok) throw new Error();
     parcelas  = await res.json();
-    document.getElementById('cParcelaId').innerHTML =
+    const sel = document.getElementById('cParcelaId');
+    sel.innerHTML = '<option value="">Selecciona parcela...</option>' +
       parcelas.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('');
-  } catch {}
+  } catch {
+    document.getElementById('cParcelaId').innerHTML =
+      '<option value="">⚠ No se pudieron cargar parcelas</option>';
+  }
 }
 
 async function cargarProductos() {
   try {
     const res = await fetch(API_INVENTARIO);
+    if (!res.ok) throw new Error();
     productos = await res.json();
-    document.getElementById('cProductoId').innerHTML =
+    const sel = document.getElementById('cProductoId');
+    sel.innerHTML = '<option value="">Selecciona producto...</option>' +
       productos.map(p =>
-        `<option value="${p.id}">${p.nombre} (${p.stockActual} ${p.unidadMedida})</option>`
+        `<option value="${p.id}">${p.nombre} (Stock: ${p.stockActual} ${p.unidadMedida})</option>`
       ).join('');
-  } catch {}
+  } catch {
+    document.getElementById('cProductoId').innerHTML =
+      '<option value="">⚠ No se pudieron cargar productos</option>';
+  }
 }
 
 async function cargarCosechas() {
   try {
     const res = await fetch(API_COSECHA);
+    if (!res.ok) throw new Error();
     cosechas  = await res.json();
     actualizarKPIs();
     filtrar();
@@ -137,14 +163,15 @@ function renderTabla(lista) {
 
 // ── MODAL ───────────────────────────────────────────
 function abrirModal() {
-  document.getElementById('modalTitulo').textContent  = 'Registrar cosecha';
-  document.getElementById('cosechaId').value          = '';
-  document.getElementById('cFecha').value             = new Date().toISOString().split('T')[0];
-  document.getElementById('cCantidad').value          = '';
-  document.getElementById('cCalidad').value           = 'EXTRA';
-  document.getElementById('cResponsable').value       = '';
-  document.getElementById('cObservaciones').value     = '';
-  document.getElementById('infoLote').style.display   = '';
+  document.getElementById('modalTitulo').textContent      = 'Registrar cosecha';
+  document.getElementById('cosechaId').value              = '';
+  document.getElementById('cFecha').value                 = new Date().toISOString().split('T')[0];
+  document.getElementById('cCantidad').value              = '';
+  document.getElementById('cCalidad').value               = 'EXTRA';
+  document.getElementById('cResponsable').value           = '';
+  document.getElementById('cObservaciones').value         = '';
+  document.getElementById('infoLote').style.display       = '';
+  limpiarErrores();
   cargarProductos();
   document.getElementById('modalCosecha').classList.add('open');
 }
@@ -162,36 +189,62 @@ function abrirEditar(id) {
   document.getElementById('cResponsable').value           = c.responsable   || '';
   document.getElementById('cObservaciones').value         = c.observaciones || '';
   document.getElementById('infoLote').style.display       = 'none';
+  limpiarErrores();
   document.getElementById('modalCosecha').classList.add('open');
 }
 
 async function guardar() {
+  limpiarErrores();
   const id         = document.getElementById('cosechaId').value;
   const parcelaId  = document.getElementById('cParcelaId').value;
   const productoId = document.getElementById('cProductoId').value;
   const fecha      = document.getElementById('cFecha').value;
   const cantidad   = document.getElementById('cCantidad').value;
-  if (!parcelaId || !productoId || !fecha || !cantidad) {
-    showToast('Completa todos los campos obligatorios', 'error'); return;
+  const responsable = document.getElementById('cResponsable').value.trim();
+  const hoy        = new Date().toISOString().split('T')[0];
+  let valido = true;
+
+  if (!parcelaId) {
+    marcarError('cParcelaId', 'Selecciona una parcela'); valido = false;
   }
+  if (!productoId) {
+    marcarError('cProductoId', 'Selecciona un producto de inventario'); valido = false;
+  }
+  if (!fecha) {
+    marcarError('cFecha', 'La fecha de cosecha es obligatoria'); valido = false;
+  }
+  if (fecha && fecha > hoy) {
+    marcarError('cFecha', 'La fecha no puede ser futura'); valido = false;
+  }
+  if (!cantidad || parseFloat(cantidad) <= 0) {
+    marcarError('cCantidad', 'Debe ser un número mayor a 0'); valido = false;
+  }
+  if (responsable && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(responsable)) {
+    marcarError('cResponsable', 'Solo letras y espacios'); valido = false;
+  }
+  if (!valido) return;
+
   const body = {
     fechaCosecha:  fecha,
     cantidadKg:    parseFloat(cantidad),
     calidad:       document.getElementById('cCalidad').value,
-    responsable:   document.getElementById('cResponsable').value.trim()   || null,
+    responsable:   responsable || null,
     observaciones: document.getElementById('cObservaciones').value.trim() || null
   };
+
   try {
     const url    = id
       ? `${API_COSECHA}/${id}`
       : `${API_COSECHA}/parcela/${parcelaId}/producto/${productoId}`;
     const method = id ? 'PUT' : 'POST';
-    const res    = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const res    = await fetch(url, {
+      method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
+    });
     const data   = await res.json();
     if (!res.ok) { showToast('Error: ' + (data.error || 'Verifica los datos'), 'error'); return; }
     cerrarModal();
     showToast(id ? 'Cosecha actualizada ✓' : `Cosecha registrada ✓ — Lote ${data.numeroLote}`);
-    cargarTodo();
+    await cargarTodo();
   } catch { showToast('Error al guardar', 'error'); }
 }
 
@@ -205,7 +258,7 @@ async function eliminar(id) {
       showToast('Error: ' + data.error, 'error'); return;
     }
     showToast('Cosecha eliminada y stock revertido');
-    cargarTodo();
+    await cargarTodo();
   } catch { showToast('Error al eliminar', 'error'); }
 }
 

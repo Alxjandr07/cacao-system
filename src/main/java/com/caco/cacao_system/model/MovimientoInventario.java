@@ -1,9 +1,11 @@
 package com.caco.cacao_system.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
 
 @Entity
 @Table(name = "movimiento_inventario")
@@ -19,6 +21,7 @@ public class MovimientoInventario {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "producto_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private ProductoInventario producto;
 
     @Enumerated(EnumType.STRING)

@@ -9,6 +9,7 @@
 </head>
 <body>
 
+<!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="sidebar-logo">
     <div class="logo-icon">🫘</div>
@@ -20,14 +21,17 @@
   <div class="nav-body">
     <div class="nav-section-label">PRINCIPAL</div>
     <a class="nav-item" href="dashboard.html"><span class="nav-icon">⊞</span> Dashboard</a>
+
     <div class="nav-section-label">GESTIÓN</div>
     <a class="nav-item" href="usuarios.html"><span class="nav-icon">👥</span> Usuarios y Roles</a>
     <a class="nav-item" href="personal.html"><span class="nav-icon">👤</span> Gestión de Personal</a>
     <a class="nav-item" href="proveedores.html"><span class="nav-icon">🚚</span> Proveedores</a>
+
     <div class="nav-section-label">PRODUCCIÓN</div>
     <a class="nav-item" href="inventario.html"><span class="nav-icon">📦</span> Inventario</a>
     <a class="nav-item" href="cultivo.html"><span class="nav-icon">🌱</span> Cultivo y Mant.</a>
     <a class="nav-item active" href="cosecha.html"><span class="nav-icon">🫘</span> Cosecha</a>
+
     <div class="nav-section-label">COMERCIAL</div>
     <a class="nav-item" href="ventas.html"><span class="nav-icon">💰</span> Ventas</a>
     <a class="nav-item" href="facturacion.html"><span class="nav-icon">🧾</span> Facturación y Reportes</a>
@@ -43,6 +47,7 @@
   </div>
 </aside>
 
+<!-- MAIN -->
 <div class="main">
   <div class="topbar">
     <div>
@@ -51,7 +56,10 @@
     </div>
     <button class="btn-primary" onclick="abrirModal()">+ Registrar cosecha</button>
   </div>
+
   <div class="content">
+
+    <!-- KPI CARDS -->
     <div class="kpi-grid">
       <div class="kpi-card">
         <div class="kpi-label">Total registros</div>
@@ -75,6 +83,7 @@
       </div>
     </div>
 
+    <!-- TOOLBAR -->
     <div class="toolbar">
       <input class="search-input" type="text" id="searchInput" placeholder="🔍 Buscar lote o parcela...">
       <select class="filter-select" id="filtroCalidad" onchange="filtrar()">
@@ -85,11 +94,12 @@
         <option value="CACAO_EN_BABA">Cacao en baba</option>
       </select>
       <input class="date-input" type="date" id="filtroInicio" onchange="filtrar()" title="Desde">
-      <input class="date-input" type="date" id="filtroFin" onchange="filtrar()" title="Hasta">
+      <input class="date-input" type="date" id="filtroFin"    onchange="filtrar()" title="Hasta">
       <button class="btn-outline" onclick="limpiarFiltros()">✕ Limpiar</button>
       <button class="btn-outline" onclick="cargarCosechas()">↻ Actualizar</button>
     </div>
 
+    <!-- TABLA -->
     <div class="table-wrap">
       <table>
         <thead>
@@ -107,6 +117,7 @@
   </div>
 </div>
 
+<!-- MODAL COSECHA -->
 <div class="modal-overlay" id="modalCosecha">
   <div class="modal">
     <div class="modal-header">

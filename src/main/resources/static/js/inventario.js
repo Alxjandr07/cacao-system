@@ -1,5 +1,5 @@
 /* =====================================================
-   CacaoGest — inventario.js
+   CacaoGest — inventario.js (con validaciones)
    ===================================================== */
 const API = 'http://localhost:8080/api/inventario';
 let productos = [];
@@ -14,12 +14,41 @@ function showToast(msg, type = 'success') {
 
 function formatFecha(isoStr) {
   if (!isoStr) return '—';
-  const d = new Date(isoStr);
+  const d    = new Date(isoStr);
   const hoy  = new Date();
   const ayer = new Date(); ayer.setDate(ayer.getDate() - 1);
   if (d.toDateString() === hoy.toDateString())  return 'Hoy';
   if (d.toDateString() === ayer.toDateString()) return 'Ayer';
   return d.toLocaleDateString('es-EC', { day:'2-digit', month:'2-digit', year:'numeric' });
+}
+
+// ── VALIDACIONES ────────────────────────────────────
+function soloLetras(valor) {
+  return /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-\/\(\)]+$/.test(valor.trim());
+}
+
+function validarProducto() {
+  const nombre  = document.getElementById('pNombre').value.trim();
+  const unidad  = document.getElementById('pUnidad').value;
+  const stock   = parseFloat(document.getElementById('pStock').value);
+  const stockM  = parseFloat(document.getElementById('pStockMin').value);
+  const errores = [];
+
+  if (!nombre)                  errores.push('El nombre del producto es obligatorio.');
+  if (nombre && nombre.length < 3) errores.push('El nombre debe tener al menos 3 caracteres.');
+  if (!unidad)                  errores.push('Selecciona una unidad de medida.');
+  if (isNaN(stock) || stock < 0)  errores.push('El stock inicial debe ser un número positivo.');
+  if (isNaN(stockM) || stockM < 0) errores.push('El stock mínimo debe ser un número positivo.');
+  if (!isNaN(stock) && !isNaN(stockM) && stockM > stock)
+    errores.push('El stock mínimo no puede ser mayor al stock inicial.');
+
+  return errores;
+}
+
+function mostrarErrores(errores) {
+  if (errores.length === 0) return true;
+  showToast(errores[0], 'error');
+  return false;
 }
 
 // ── CARGA ───────────────────────────────────────────
@@ -38,7 +67,7 @@ async function cargarProductos() {
 
 async function cargarAlertas() {
   try {
-    const res    = await fetch(`${API}/alertas`);
+    const res     = await fetch(`${API}/alertas`);
     const alertas = await res.json();
     const banner  = document.getElementById('alertaBanner');
     if (alertas.length > 0) {
@@ -63,22 +92,19 @@ function renderTabla(lista) {
     const min    = parseFloat(p.stockMinimo);
     const critico    = stock === 0;
     const bajo       = !critico && stock <= min;
-
     const estadoBadge = critico
       ? `<span class="badge badge-critico"><span class="badge-dot dot-red"></span>Crítico</span>`
       : bajo
         ? `<span class="badge badge-bajo"><span class="badge-dot dot-amber"></span>Stock bajo</span>`
         : `<span class="badge badge-disponible"><span class="badge-dot dot-blue"></span>Disponible</span>`;
-
     const tipoBadge = p.tipo === 'CACAO'
       ? `<span class="badge badge-cacao">Cacao</span>`
       : `<span class="badge badge-insumo">Insumo</span>`;
-
     return `<tr>
       <td class="name">${p.nombre}</td>
       <td>${tipoBadge}</td>
       <td class="mono">${stock.toLocaleString('es-EC')} ${p.unidadMedida}</td>
-      <td class="mono">${min.toLocaleString('es-EC')}  ${p.unidadMedida}</td>
+      <td class="mono">${min.toLocaleString('es-EC')} ${p.unidadMedida}</td>
       <td>${formatFecha(p.actualizadoEn)}</td>
       <td>${estadoBadge}</td>
       <td>
@@ -105,10 +131,12 @@ document.getElementById('searchInput').addEventListener('input', filtrar);
 function abrirModalProducto() {
   document.getElementById('modalProductoTitulo').textContent = 'Nuevo producto';
   document.getElementById('productoId').value = '';
-  ['pNombre','pUnidad','pDescripcion'].forEach(id => document.getElementById(id).value = '');
+  ['pNombre','pDescripcion'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('pTipo').value     = 'CACAO';
+  document.getElementById('pUnidad').value   = '';
   document.getElementById('pStock').value    = '';
   document.getElementById('pStockMin').value = '';
+  limpiarErrorCampos();
   document.getElementById('modalProducto').classList.add('open');
 }
 
@@ -116,30 +144,64 @@ function abrirEditar(id) {
   const p = productos.find(x => x.id === id);
   if (!p) return;
   document.getElementById('modalProductoTitulo').textContent = 'Editar producto';
-  document.getElementById('productoId').value    = p.id;
-  document.getElementById('pNombre').value       = p.nombre;
-  document.getElementById('pTipo').value         = p.tipo;
-  document.getElementById('pUnidad').value       = p.unidadMedida;
-  document.getElementById('pStock').value        = p.stockActual;
-  document.getElementById('pStockMin').value     = p.stockMinimo;
-  document.getElementById('pDescripcion').value  = p.descripcion || '';
+  document.getElementById('productoId').value   = p.id;
+  document.getElementById('pNombre').value      = p.nombre;
+  document.getElementById('pTipo').value        = p.tipo;
+  document.getElementById('pUnidad').value      = p.unidadMedida;
+  document.getElementById('pStock').value       = p.stockActual;
+  document.getElementById('pStockMin').value    = p.stockMinimo;
+  document.getElementById('pDescripcion').value = p.descripcion || '';
+  limpiarErrorCampos();
   document.getElementById('modalProducto').classList.add('open');
 }
 
+function limpiarErrorCampos() {
+  document.querySelectorAll('.field-error').forEach(e => e.remove());
+  document.querySelectorAll('.input-error').forEach(e => e.classList.remove('input-error'));
+}
+
+function marcarError(inputId, msg) {
+  const input = document.getElementById(inputId);
+  input.classList.add('input-error');
+  const err = document.createElement('span');
+  err.className = 'field-error';
+  err.textContent = msg;
+  input.parentNode.appendChild(err);
+}
+
 async function guardarProducto() {
-  const nombre = document.getElementById('pNombre').value.trim();
-  const unidad = document.getElementById('pUnidad').value.trim();
-  const stock  = document.getElementById('pStock').value;
-  const stockM = document.getElementById('pStockMin').value;
-  if (!nombre || !unidad || stock === '' || stockM === '') {
-    showToast('Completa todos los campos obligatorios', 'error'); return;
+  limpiarErrorCampos();
+  const nombre  = document.getElementById('pNombre').value.trim();
+  const unidad  = document.getElementById('pUnidad').value;
+  const stock   = document.getElementById('pStock').value;
+  const stockM  = document.getElementById('pStockMin').value;
+  let valido = true;
+
+  if (!nombre || nombre.length < 3) {
+    marcarError('pNombre', 'Mínimo 3 caracteres'); valido = false;
   }
+  if (!unidad) {
+    marcarError('pUnidad', 'Selecciona una unidad'); valido = false;
+  }
+  if (stock === '' || parseFloat(stock) < 0) {
+    marcarError('pStock', 'Debe ser un número positivo'); valido = false;
+  }
+  if (stockM === '' || parseFloat(stockM) < 0) {
+    marcarError('pStockMin', 'Debe ser un número positivo'); valido = false;
+  }
+  if (valido && parseFloat(stockM) > parseFloat(stock)) {
+    marcarError('pStockMin', 'No puede superar el stock inicial'); valido = false;
+  }
+  if (!valido) return;
+
   const id   = document.getElementById('productoId').value;
   const body = {
-    nombre, tipo: document.getElementById('pTipo').value,
+    nombre,
+    tipo:         document.getElementById('pTipo').value,
     unidadMedida: unidad,
-    stockActual: parseFloat(stock), stockMinimo: parseFloat(stockM),
-    descripcion: document.getElementById('pDescripcion').value.trim()
+    stockActual:  parseFloat(stock),
+    stockMinimo:  parseFloat(stockM),
+    descripcion:  document.getElementById('pDescripcion').value.trim()
   };
   const url    = id ? `${API}/productos/${id}` : `${API}/productos`;
   const method = id ? 'PUT' : 'POST';
@@ -182,7 +244,7 @@ function updateMovLabel() {
 async function guardarMovimiento() {
   const cantidad = document.getElementById('movCantidad').value;
   if (!cantidad || parseFloat(cantidad) <= 0) {
-    showToast('Ingresa una cantidad válida', 'error'); return;
+    showToast('Ingresa una cantidad válida mayor a 0', 'error'); return;
   }
   const body = {
     productoId: document.getElementById('movProductoId').value,

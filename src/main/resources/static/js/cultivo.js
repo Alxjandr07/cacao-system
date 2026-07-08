@@ -1,10 +1,47 @@
 /* =====================================================
-   CacaoGest — cultivo.js
+   CacaoGest — cultivo.js (con validaciones + provincia/cantón)
    ===================================================== */
 const API = 'http://localhost:8080/api/cultivo';
 let parcelas    = [];
 let actividades = [];
 let tabActual   = 'parcelas';
+
+// ── DATOS ECUADOR ────────────────────────────────────
+const ECUADOR = {
+  "Azuay":           ["Cuenca","Girón","Gualaceo","Nabón","Paute","Pucará","San Fernando","Santa Isabel","Sigsig","Oña","Chordeleg","El Pan","Sevilla de Oro","Guachapala","Camilo Ponce Enríquez"],
+  "Bolívar":         ["Guaranda","Chillanes","Chimbo","Echeandía","San Miguel","Caluma","Las Naves"],
+  "Cañar":           ["Azogues","Biblián","Cañar","La Troncal","El Tambo","Déleg","Suscal"],
+  "Carchi":          ["Tulcán","Bolívar","Espejo","Mira","Montúfar","San Pedro de Huaca"],
+  "Chimborazo":      ["Riobamba","Alausí","Colta","Chambo","Chunchi","Guamote","Guano","Pallatanga","Penipe","Cumandá"],
+  "Cotopaxi":        ["Latacunga","La Maná","Pangua","Pujilí","Salcedo","Saquisilí","Sigchos"],
+  "El Oro":          ["Machala","Arenillas","Atahualpa","Balsas","Chilla","El Guabo","Huaquillas","Marcabelí","Pasaje","Piñas","Portovelo","Santa Rosa","Zaruma","Las Lajas"],
+  "Esmeraldas":      ["Esmeraldas","Atacames","Eloy Alfaro","Muisne","Quinindé","San Lorenzo","Río Verde"],
+  "Galápagos":       ["Puerto Baquerizo Moreno","Puerto Ayora","Puerto Villamil"],
+  "Guayas":          ["Guayaquil","Alfredo Baquerizo Moreno","Balao","Balzar","Colimes","Daule","Durán","El Empalme","El Triunfo","Milagro","Naranjal","Naranjito","Palestina","Pedro Carbo","Samborondón","Santa Lucía","Salitre","San Jacinto de Yaguachi","Playas","Simón Bolívar","Coronel Marcelino Maridueña","Lomas de Sargentillo","Nobol","General Antonio Elizalde","Isidro Ayora"],
+  "Imbabura":        ["Ibarra","Antonio Ante","Cotacachi","Otavalo","Pimampiro","San Miguel de Urcuquí"],
+  "Loja":            ["Loja","Calvas","Catamayo","Celica","Chaguarpamba","Espíndola","Gonzanamá","Macará","Paltas","Puyango","Saraguro","Sozoranga","Zapotillo","Pindal","Quilanga","Olmedo"],
+  "Los Ríos":        ["Babahoyo","Baba","Montalvo","Puebloviejo","Quevedo","Urdaneta","Ventanas","Vínces","Palenque","Buena Fé","Valencia","Mocache","Quinsaloma"],
+  "Manabí":          ["Portoviejo","Bolívar","Chone","El Carmen","Flavio Alfaro","Jipijapa","Junín","Manta","Montecristi","Paján","Pichincha","Rocafuerte","Santa Ana","Sucre","Tosagua","24 de Mayo","Pedernales","Olmedo","Puerto López","Jama","Jaramijó","San Vicente"],
+  "Morona Santiago": ["Macas","Gualaquiza","Huamboya","Limón Indanza","Logroño","Morona","Pablo Sexto","Palora","San Juan Bosco","Santiago","Sucúa","Taisha","Tiwintza"],
+  "Napo":            ["Tena","Archidona","El Chaco","Quijos","Carlos Julio Arosemena Tola"],
+  "Orellana":        ["Puerto Francisco de Orellana","Aguarico","La Joya de los Sachas","Loreto"],
+  "Pastaza":         ["Puyo","Arajuno","Mera","Santa Clara"],
+  "Pichincha":       ["Quito","Cayambe","Mejía","Pedro Moncayo","Rumiñahui","San Miguel de los Bancos","Pedro Vicente Maldonado","Puerto Quito"],
+  "Santa Elena":     ["Santa Elena","La Libertad","Salinas"],
+  "Santo Domingo":   ["Santo Domingo","La Concordia"],
+  "Sucumbíos":       ["Nueva Loja","Cascales","Cuyabeno","Gonzalo Pizarro","Lago Agrio","Putumayo","Shushufindi","Sucumbíos"],
+  "Tungurahua":      ["Ambato","Baños de Agua Santa","Cevallos","Mocha","Patate","Quero","San Pedro de Pelileo","Santiago de Píllaro","Tisaleo"],
+  "Zamora Chinchipe":["Zamora","Centinela del Cóndor","Chinchipe","El Pangui","Nangaritza","Palanda","Paquisha","Yacuambi","Yantzaza"]
+};
+
+const INSUMOS = [
+  "Fertilizante NPK","Fertilizante Urea","Fertilizante Fosfato","Fertilizante Potásico",
+  "Abono orgánico","Compost","Humus de lombriz",
+  "Fungicida Mancozeb","Fungicida Cobre","Fungicida Propiconazol",
+  "Herbicida Glifosato","Herbicida 2,4-D","Herbicida Paraquat",
+  "Pesticida Clorpirifós","Pesticida Imidacloprid","Pesticida Abamectina",
+  "Otro insumo"
+];
 
 // ── UTILS ──────────────────────────────────────────
 function showToast(msg, type = 'success') {
@@ -37,6 +74,49 @@ function estadoBadge(estado) {
   };
   const [cls, label] = map[estado] || ['badge-otro', estado];
   return `<span class="badge ${cls}">${label}</span>`;
+}
+
+function limpiarErrores(contenedorId) {
+  const contenedor = document.getElementById(contenedorId);
+  contenedor.querySelectorAll('.field-error').forEach(e => e.remove());
+  contenedor.querySelectorAll('.input-error').forEach(e => e.classList.remove('input-error'));
+}
+
+function marcarError(inputId, msg) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  input.classList.add('input-error');
+  const err = document.createElement('span');
+  err.className = 'field-error';
+  err.textContent = msg;
+  input.parentNode.appendChild(err);
+}
+
+// ── PROVINCIA / CANTÓN ───────────────────────────────
+function poblarProvincias() {
+  const sel = document.getElementById('pProvincia');
+  sel.innerHTML = '<option value="">Selecciona provincia...</option>' +
+    Object.keys(ECUADOR).sort().map(p => `<option value="${p}">${p}</option>`).join('');
+  document.getElementById('pCanton').innerHTML = '<option value="">Primero selecciona provincia</option>';
+}
+
+function onProvinciaChange() {
+  const prov = document.getElementById('pProvincia').value;
+  const sel  = document.getElementById('pCanton');
+  if (!prov) {
+    sel.innerHTML = '<option value="">Primero selecciona provincia</option>';
+    return;
+  }
+  sel.innerHTML = '<option value="">Selecciona cantón...</option>' +
+    (ECUADOR[prov] || []).map(c => `<option value="${c}">${c}</option>`).join('');
+}
+
+// ── INSUMOS SELECT ───────────────────────────────────
+function poblarInsumos() {
+  const sel = document.getElementById('aInsumos');
+  sel.innerHTML = '<option value="">Selecciona insumo usado...</option>' +
+    INSUMOS.map(i => `<option value="${i}">${i}</option>`).join('') +
+    '<option value="Ninguno">Ninguno</option>';
 }
 
 // ── TABS ────────────────────────────────────────────
@@ -90,7 +170,7 @@ function renderParcelas(lista) {
 function poblarSelectParcelas() {
   ['aParcelaId','filtroParcelaAct'].forEach(id => {
     const sel      = document.getElementById(id);
-    const firstOpt = id === 'filtroParcelaAct' ? '<option value="">Todas las parcelas</option>' : '';
+    const firstOpt = id === 'filtroParcelaAct' ? '<option value="">Todas las parcelas</option>' : '<option value="">Selecciona parcela...</option>';
     sel.innerHTML  = firstOpt + parcelas.map(p =>
       `<option value="${p.id}">${p.nombre}</option>`).join('');
   });
@@ -115,7 +195,7 @@ async function cargarActividades() {
 
 async function cargarVencidas() {
   try {
-    const res     = await fetch(`${API}/actividades/vencidas`);
+    const res      = await fetch(`${API}/actividades/vencidas`);
     const vencidas = await res.json();
     const banner   = document.getElementById('alertaBanner');
     if (vencidas.length > 0) {
@@ -171,9 +251,11 @@ function verHistorial(parcelaId) {
 function abrirModalParcela() {
   document.getElementById('modalParcelaTitulo').textContent = 'Nueva parcela';
   document.getElementById('parcelaId').value = '';
-  ['pNombre','pUbicacion','pVariedad','pResponsable','pObservaciones'].forEach(id =>
+  ['pNombre','pVariedad','pResponsable','pObservaciones'].forEach(id =>
     document.getElementById(id).value = '');
   document.getElementById('pHectareas').value = '';
+  poblarProvincias();
+  limpiarErrores('modalParcela');
   document.getElementById('modalParcela').classList.add('open');
 }
 
@@ -183,25 +265,57 @@ function abrirEditarParcela(id) {
   document.getElementById('modalParcelaTitulo').textContent = 'Editar parcela';
   document.getElementById('parcelaId').value      = p.id;
   document.getElementById('pNombre').value        = p.nombre;
-  document.getElementById('pUbicacion').value     = p.ubicacion;
   document.getElementById('pHectareas').value     = p.hectareas || '';
-  document.getElementById('pVariedad').value      = p.variedadCacao || '';
-  document.getElementById('pResponsable').value   = p.responsable || '';
-  document.getElementById('pObservaciones').value = p.observaciones || '';
+  document.getElementById('pVariedad').value      = p.variedadCacao  || '';
+  document.getElementById('pResponsable').value   = p.responsable    || '';
+  document.getElementById('pObservaciones').value = p.observaciones  || '';
+
+  // Parsear ubicacion "Provincia, Cantón"
+  poblarProvincias();
+  if (p.ubicacion && p.ubicacion.includes(',')) {
+    const [prov, cant] = p.ubicacion.split(',').map(s => s.trim());
+    document.getElementById('pProvincia').value = prov;
+    onProvinciaChange();
+    setTimeout(() => { document.getElementById('pCanton').value = cant; }, 50);
+  }
+  limpiarErrores('modalParcela');
   document.getElementById('modalParcela').classList.add('open');
 }
 
 async function guardarParcela() {
+  limpiarErrores('modalParcela');
   const nombre    = document.getElementById('pNombre').value.trim();
-  const ubicacion = document.getElementById('pUbicacion').value.trim();
-  if (!nombre || !ubicacion) { showToast('Nombre y ubicación son obligatorios', 'error'); return; }
+  const provincia = document.getElementById('pProvincia').value;
+  const canton    = document.getElementById('pCanton').value;
+  const hectareas = document.getElementById('pHectareas').value;
+  const responsable = document.getElementById('pResponsable').value.trim();
+  let valido = true;
+
+  if (!nombre || nombre.length < 3) {
+    marcarError('pNombre', 'Mínimo 3 caracteres'); valido = false;
+  }
+  if (!provincia) {
+    marcarError('pProvincia', 'Selecciona una provincia'); valido = false;
+  }
+  if (!canton) {
+    marcarError('pCanton', 'Selecciona un cantón'); valido = false;
+  }
+  if (hectareas && (isNaN(parseFloat(hectareas)) || parseFloat(hectareas) <= 0)) {
+    marcarError('pHectareas', 'Debe ser un número positivo'); valido = false;
+  }
+  if (responsable && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(responsable)) {
+    marcarError('pResponsable', 'Solo letras y espacios'); valido = false;
+  }
+  if (!valido) return;
+
   const id   = document.getElementById('parcelaId').value;
   const body = {
-    nombre, ubicacion,
-    hectareas:     document.getElementById('pHectareas').value    || null,
-    variedadCacao: document.getElementById('pVariedad').value.trim()     || null,
-    responsable:   document.getElementById('pResponsable').value.trim()  || null,
-    observaciones: document.getElementById('pObservaciones').value.trim()|| null
+    nombre,
+    ubicacion:     `${provincia}, ${canton}`,
+    hectareas:     hectareas ? parseFloat(hectareas) : null,
+    variedadCacao: document.getElementById('pVariedad').value.trim()      || null,
+    responsable:   responsable || null,
+    observaciones: document.getElementById('pObservaciones').value.trim() || null
   };
   const url    = id ? `${API}/parcelas/${id}` : `${API}/parcelas`;
   const method = id ? 'PUT' : 'POST';
@@ -231,8 +345,10 @@ function abrirModalActividad() {
   document.getElementById('aEstado').value      = 'PENDIENTE';
   document.getElementById('aFechaProg').value   = '';
   document.getElementById('aFechaReal').value   = '';
-  ['aResponsable','aInsumos','aObservaciones'].forEach(id =>
-    document.getElementById(id).value = '');
+  document.getElementById('aResponsable').value = '';
+  document.getElementById('aObservaciones').value = '';
+  poblarInsumos();
+  limpiarErrores('modalActividad');
   document.getElementById('modalActividad').classList.add('open');
 }
 
@@ -247,24 +363,45 @@ function abrirEditarActividad(id) {
   document.getElementById('aFechaProg').value      = a.fechaProgramada || '';
   document.getElementById('aFechaReal').value      = a.fechaRealizada  || '';
   document.getElementById('aResponsable').value    = a.responsable     || '';
-  document.getElementById('aInsumos').value        = a.insumosUsados   || '';
   document.getElementById('aObservaciones').value  = a.observaciones   || '';
+  poblarInsumos();
+  if (a.insumosUsados) document.getElementById('aInsumos').value = a.insumosUsados;
+  limpiarErrores('modalActividad');
   document.getElementById('modalActividad').classList.add('open');
 }
 
 async function guardarActividad() {
-  const parcelaId = document.getElementById('aParcelaId').value;
-  const fechaProg = document.getElementById('aFechaProg').value;
-  if (!parcelaId || !fechaProg) { showToast('Parcela y fecha programada son obligatorias', 'error'); return; }
+  limpiarErrores('modalActividad');
+  const parcelaId   = document.getElementById('aParcelaId').value;
+  const fechaProg   = document.getElementById('aFechaProg').value;
+  const fechaReal   = document.getElementById('aFechaReal').value;
+  const responsable = document.getElementById('aResponsable').value.trim();
+  const hoy         = new Date().toISOString().split('T')[0];
+  let valido = true;
+
+  if (!parcelaId) {
+    marcarError('aParcelaId', 'Selecciona una parcela'); valido = false;
+  }
+  if (!fechaProg) {
+    marcarError('aFechaProg', 'La fecha programada es obligatoria'); valido = false;
+  }
+  if (fechaReal && fechaReal > hoy) {
+    marcarError('aFechaReal', 'La fecha realizada no puede ser futura'); valido = false;
+  }
+  if (responsable && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(responsable)) {
+    marcarError('aResponsable', 'Solo letras y espacios'); valido = false;
+  }
+  if (!valido) return;
+
   const id   = document.getElementById('actividadId').value;
   const body = {
     tipo:            document.getElementById('aTipo').value,
     estado:          document.getElementById('aEstado').value,
     fechaProgramada: fechaProg,
-    fechaRealizada:  document.getElementById('aFechaReal').value || null,
-    responsable:     document.getElementById('aResponsable').value.trim() || null,
-    insumosUsados:   document.getElementById('aInsumos').value.trim()     || null,
-    observaciones:   document.getElementById('aObservaciones').value.trim()|| null
+    fechaRealizada:  fechaReal || null,
+    responsable:     responsable || null,
+    insumosUsados:   document.getElementById('aInsumos').value || null,
+    observaciones:   document.getElementById('aObservaciones').value.trim() || null
   };
   const url    = id ? `${API}/actividades/${id}` : `${API}/actividades/parcela/${parcelaId}`;
   const method = id ? 'PUT' : 'POST';

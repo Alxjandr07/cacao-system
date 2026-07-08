@@ -1,5 +1,6 @@
 package com.caco.cacao_system.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
@@ -19,6 +20,7 @@ public class ActividadMantenimiento {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parcela_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Parcela parcela;
 
     @Enumerated(EnumType.STRING)
