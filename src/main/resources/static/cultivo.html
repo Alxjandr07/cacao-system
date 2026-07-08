@@ -1,145 +1,11 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cultivo y Mantenimiento — CacaoGest</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=DM+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --sidebar-bg1: #3b1f13;
-  --sidebar-bg2: #5b341c;
-  --sidebar-border: #2e3a32;
-  --green: #7baa2f;
-  --green-dark: #678e27;
-  --cream: #f4f1ec;
-  --brown-dark: #382011;
-  --brown-mid: #7c4a2b;
-  --text-main: #5a6b5e;
-  --text-dark: #1a1a1a;
-  --border-color: #9aab9e;
-  --amber: #fde68a;
-  --amber-border: #b49a33;
-  --amber-text: #7c4a2b;
-  --blue-badge: #b1cff3;
-  --blue-text: #0e6dcb;
-  --red-badge: #fca5a5;
-  --red-text: #e53e3e;
-  --white: #ffffff;
-}
-body { font-family: 'DM Sans', sans-serif; background: var(--cream); display: flex; min-height: 100vh; color: var(--text-dark); }
-
-/* ── SIDEBAR ── */
-.sidebar { width: 220px; min-width: 220px; background: linear-gradient(180deg, var(--sidebar-bg1) 0%, var(--sidebar-bg2) 100%); border-right: 0.8px solid var(--sidebar-border); display: flex; flex-direction: column; min-height: 100vh; position: sticky; top: 0; }
-.sidebar-logo { padding: 24px 20px 20px; border-bottom: 0.8px solid rgba(255,255,255,0.12); display: flex; align-items: center; gap: 12px; }
-.logo-icon { width: 48px; height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 28px; }
-.logo-text .brand { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -0.3px; line-height: 1; }
-.logo-text .brand .cacao { color: #fff; }
-.logo-text .brand .gest { color: var(--green); }
-.logo-text .cycle { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 11px; color: var(--brown-mid); margin-top: 3px; }
-.nav-body { flex: 1; padding: 16px 12px; overflow-y: auto; }
-.nav-section-label { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 12px; color: var(--green); letter-spacing: 1px; padding: 0 8px; margin: 14px 0 6px; }
-.nav-section-label:first-child { margin-top: 0; }
-.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 6px; font-family: 'Inter', sans-serif; font-weight: 500; font-size: 14px; color: #e8ede9; cursor: pointer; margin-bottom: 2px; transition: background 0.15s; text-decoration: none; }
-.nav-item:hover { background: rgba(255,255,255,0.08); }
-.nav-item.active { background: var(--green-dark); }
-.nav-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
-.sidebar-user { margin: 12px; background: var(--brown-dark); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
-.user-avatar { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-.user-info .uname { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 13px; color: #fff; }
-.user-info .urole { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 1px; }
-.user-chevron { margin-left: auto; color: rgba(255,255,255,0.4); font-size: 14px; }
-
-/* ── MAIN ── */
-.main { flex: 1; display: flex; flex-direction: column; background: var(--cream); }
-.topbar { background: var(--cream); border-bottom: 0.8px solid var(--border-color); padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; }
-.page-title { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 20px; color: var(--green); letter-spacing: -0.6px; }
-.page-sub { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-main); margin-top: 2px; }
-.btn-primary { background: var(--green); color: #fff; border: none; border-radius: 7px; padding: 9px 18px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px; cursor: pointer; transition: background 0.15s; }
-.btn-primary:hover { background: var(--green-dark); }
-.content { flex: 1; padding: 24px 28px; }
-
-/* ALERTA VENCIDAS */
-.alert-banner { display: flex; align-items: center; gap: 10px; background: var(--amber); border: 0.8px solid var(--amber-border); border-radius: 6px; padding: 12px 16px; font-size: 13px; color: var(--amber-text); margin-bottom: 20px; }
-.alert-banner.hidden { display: none; }
-
-/* TABS */
-.tabs { display: flex; gap: 4px; margin-bottom: 20px; background: #fff; border: 0.8px solid var(--border-color); border-radius: 8px; padding: 4px; width: fit-content; }
-.tab { padding: 7px 18px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer; transition: all 0.15s; border: none; background: none; font-family: 'Inter', sans-serif; }
-.tab.active { background: var(--green); color: #fff; }
-
-/* TOOLBAR */
-.toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
-.search-input { background: #fff; border: 0.8px solid var(--border-color); border-radius: 7px; padding: 8px 14px; font-size: 13px; color: var(--text-dark); font-family: 'DM Sans', sans-serif; width: 230px; outline: none; }
-.search-input:focus { border-color: var(--green); }
-.search-input::placeholder { color: var(--border-color); }
-.filter-select { background: #fff; border: 0.8px solid var(--border-color); border-radius: 7px; padding: 8px 14px; font-size: 13px; color: var(--text-dark); font-family: 'DM Sans', sans-serif; outline: none; cursor: pointer; }
-.btn-outline { background: #fff; border: 0.8px solid var(--border-color); border-radius: 7px; padding: 8px 16px; font-size: 13px; color: var(--text-main); font-family: 'DM Sans', sans-serif; cursor: pointer; }
-
-/* TABLA */
-.table-wrap { background: #fff; border: 0.8px solid var(--border-color); border-radius: 10px; overflow: hidden; }
-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-thead th { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 11px; color: var(--brown-dark); letter-spacing: 0.8px; text-transform: uppercase; padding: 11px 14px; text-align: left; border-bottom: 0.8px solid var(--border-color); background: #faf8f5; }
-tbody td { padding: 11px 14px; border-bottom: 0.8px solid #eee; vertical-align: middle; }
-tbody tr:last-child td { border-bottom: none; }
-tbody tr:hover { background: #faf8f5; }
-td.name { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 13px; color: var(--text-main); }
-td.mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-dark); }
-.empty-state { text-align: center; padding: 40px; color: var(--border-color); font-size: 13px; }
-
-/* BADGES */
-.badge { display: inline-flex; align-items: center; gap: 5px; font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 10px; padding: 3px 10px; border-radius: 4px; white-space: nowrap; }
-.badge-pendiente   { background: #fef9c3; color: #854d0e; }
-.badge-en-proceso  { background: var(--blue-badge); color: var(--blue-text); }
-.badge-completada  { background: #d4edda; color: #155724; }
-.badge-cancelada   { background: #f3f4f6; color: #6b7280; }
-.badge-poda        { background: #fce7f3; color: #9d174d; }
-.badge-fumigacion  { background: #fef3c7; color: #92400e; }
-.badge-riego       { background: #dbeafe; color: #1e40af; }
-.badge-fertilizacion { background: #d1fae5; color: #065f46; }
-.badge-control     { background: #ede9fe; color: #5b21b6; }
-.badge-limpieza    { background: #f1f5f9; color: #475569; }
-.badge-otro        { background: #f3f4f6; color: #374151; }
-.badge-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-
-/* ACTION BTNS */
-.action-btn { background: #fff; border: 0.8px solid var(--text-main); border-radius: 5px; padding: 4px 10px; font-size: 11px; color: var(--text-main); cursor: pointer; margin-right: 4px; font-family: 'Inter', sans-serif; transition: all 0.15s; }
-.action-btn:hover { border-color: var(--green); color: var(--green-dark); }
-.action-btn.danger:hover { border-color: var(--red-text); color: var(--red-text); }
-
-/* CARD PARCELA */
-.parcelas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
-.parcela-card { background: #fff; border: 0.8px solid var(--border-color); border-radius: 10px; padding: 16px; cursor: pointer; transition: all 0.15s; }
-.parcela-card:hover { border-color: var(--green); box-shadow: 0 2px 12px rgba(123,170,47,0.12); }
-.parcela-card.selected { border-color: var(--green); background: #f7faf0; }
-.parcela-name { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px; color: var(--green); margin-bottom: 6px; }
-.parcela-meta { font-size: 12px; color: var(--text-main); margin-bottom: 3px; display: flex; align-items: center; gap: 6px; }
-.parcela-actions { display: flex; gap: 6px; margin-top: 12px; padding-top: 10px; border-top: 0.8px solid #eee; }
-
-/* ── MODALS ── */
-.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; }
-.modal-overlay.open { display: flex; }
-.modal { background: #fff; border-radius: 12px; width: 520px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,0,0.2); overflow: hidden; }
-.modal-header { padding: 18px 22px; border-bottom: 0.8px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-.modal-title { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 16px; color: var(--green); }
-.modal-close { background: none; border: none; color: var(--border-color); font-size: 20px; cursor: pointer; }
-.modal-body { padding: 20px 22px; display: flex; flex-direction: column; gap: 14px; max-height: 70vh; overflow-y: auto; }
-.modal-footer { padding: 14px 22px; border-top: 0.8px solid #eee; display: flex; justify-content: flex-end; gap: 10px; }
-.field label { display: block; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 11px; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px; }
-.field input, .field select, .field textarea { width: 100%; background: var(--cream); border: 0.8px solid var(--border-color); border-radius: 7px; padding: 9px 12px; font-size: 13px; color: var(--text-dark); font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.15s; }
-.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--green); }
-.field textarea { resize: vertical; min-height: 70px; }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.col-full { grid-column: 1 / -1; }
-.btn-cancel { background: #fff; border: 0.8px solid var(--border-color); border-radius: 7px; padding: 9px 20px; font-size: 13px; color: var(--text-main); font-family: 'DM Sans', sans-serif; cursor: pointer; }
-
-/* Toast */
-.toast { position: fixed; bottom: 24px; right: 24px; background: var(--brown-dark); color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 13px; font-family: 'DM Sans', sans-serif; z-index: 999; opacity: 0; transform: translateY(10px); transition: all 0.3s; pointer-events: none; }
-.toast.show { opacity: 1; transform: translateY(0); }
-.toast.error { background: #c0392b; }
-.toast.success { background: var(--green-dark); }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cultivo y Mantenimiento — CacaoGest</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=DM+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/cacaogest.css">
 </head>
 <body>
 
@@ -154,18 +20,22 @@ td.mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(-
   </div>
   <div class="nav-body">
     <div class="nav-section-label">PRINCIPAL</div>
-    <a class="nav-item" href="/dashboard.html"><span class="nav-icon">⊞</span> Inicio</a>
+    <a class="nav-item" href="dashboard.html"><span class="nav-icon">⊞</span> Dashboard</a>
+
+    <div class="nav-section-label">GESTIÓN</div>
+    <a class="nav-item" href="usuarios.html"><span class="nav-icon">👥</span> Usuarios y Roles</a>
+    <a class="nav-item" href="personal.html"><span class="nav-icon">👤</span> Gestión de Personal</a>
+    <a class="nav-item" href="proveedores.html"><span class="nav-icon">🚚</span> Proveedores</a>
+
     <div class="nav-section-label">PRODUCCIÓN</div>
-    <a class="nav-item active" href="/cultivo.html"><span class="nav-icon">🌱</span> Cultivo y Mant.</a>
-    <a class="nav-item" href="/cosecha.html"><span class="nav-icon">🫘</span> Cosecha</a>
-    <a class="nav-item" href="/fermentacion.html"><span class="nav-icon">🧪</span> Fermentación</a>
-    <a class="nav-item" href="/secado.html"><span class="nav-icon">☀️</span> Secado</a>
-    <div class="nav-section-label">OPERACIONES</div>
-    <a class="nav-item" href="/inventario.html"><span class="nav-icon">📦</span> Inventario</a>
-    <a class="nav-item" href="/ventas.html"><span class="nav-icon">💰</span> Ventas</a>
-    <a class="nav-item" href="/personal.html"><span class="nav-icon">👤</span> Personal</a>
-    <div class="nav-section-label">ADMIN</div>
-    <a class="nav-item" href="/proveedores.html"><span class="nav-icon">🚚</span> Proveedores</a>
+    <a class="nav-item" href="inventario.html"><span class="nav-icon">📦</span> Inventario</a>
+    <a class="nav-item active" href="cultivo.html"><span class="nav-icon">🌱</span> Cultivo y Mant.</a>
+    <a class="nav-item" href="cosecha.html"><span class="nav-icon">🫘</span> Cosecha</a>
+
+    <div class="nav-section-label">COMERCIAL</div>
+    <a class="nav-item" href="ventas.html"><span class="nav-icon">💰</span> Ventas</a>
+    <a class="nav-item" href="facturacion.html"><span class="nav-icon">🧾</span> Facturación y Reportes</a>
+    <a class="nav-item" href="trazabilidad.html"><span class="nav-icon">🔍</span> Trazabilidad</a>
   </div>
   <div class="sidebar-user">
     <div class="user-avatar">🌿</div>
@@ -184,19 +54,14 @@ td.mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(-
       <div class="page-title">Cultivo y Mantenimiento</div>
       <div class="page-sub">Gestión de parcelas y actividades agrícolas</div>
     </div>
-    <div style="display:flex;gap:8px;">
-      <button class="btn-primary" id="btnNuevo" onclick="abrirModalParcela()">+ Nueva parcela</button>
-    </div>
+    <button class="btn-primary" id="btnNuevo" onclick="abrirModalParcela()">+ Nueva parcela</button>
   </div>
 
   <div class="content">
-
-    <!-- ALERTA VENCIDAS -->
     <div class="alert-banner hidden" id="alertaBanner">
       ⚠ <span id="alertaTexto"></span>
     </div>
 
-    <!-- TABS -->
     <div class="tabs">
       <button class="tab active" id="tabParcelas" onclick="switchTab('parcelas')">🗺 Parcelas</button>
       <button class="tab" id="tabActividades" onclick="switchTab('actividades')">📋 Actividades</button>
@@ -242,14 +107,9 @@ td.mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(-
         <table>
           <thead>
             <tr>
-              <th>Parcela</th>
-              <th>Tipo</th>
-              <th>Responsable</th>
-              <th>Fecha programada</th>
-              <th>Fecha realizada</th>
-              <th>Insumos usados</th>
-              <th>Estado</th>
-              <th>Acción</th>
+              <th>Parcela</th><th>Tipo</th><th>Responsable</th>
+              <th>Fecha programada</th><th>Fecha realizada</th>
+              <th>Insumos usados</th><th>Estado</th><th>Acción</th>
             </tr>
           </thead>
           <tbody id="actividadesBody">
@@ -258,7 +118,6 @@ td.mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(-
         </table>
       </div>
     </div>
-
   </div>
 </div>
 
@@ -272,30 +131,12 @@ td.mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(-
     <div class="modal-body">
       <input type="hidden" id="parcelaId">
       <div class="form-grid">
-        <div class="field col-full">
-          <label>Nombre de la parcela *</label>
-          <input type="text" id="pNombre" placeholder="Ej: Finca El Progreso — Lote A">
-        </div>
-        <div class="field">
-          <label>Ubicación *</label>
-          <input type="text" id="pUbicacion" placeholder="Ej: Quevedo, Los Ríos">
-        </div>
-        <div class="field">
-          <label>Hectáreas</label>
-          <input type="number" id="pHectareas" placeholder="0.00" min="0" step="0.01">
-        </div>
-        <div class="field">
-          <label>Variedad de cacao</label>
-          <input type="text" id="pVariedad" placeholder="Ej: CCN-51, Nacional Fino...">
-        </div>
-        <div class="field">
-          <label>Responsable</label>
-          <input type="text" id="pResponsable" placeholder="Nombre del encargado">
-        </div>
-        <div class="field col-full">
-          <label>Observaciones</label>
-          <textarea id="pObservaciones" placeholder="Notas adicionales..."></textarea>
-        </div>
+        <div class="field col-full"><label>Nombre de la parcela *</label><input type="text" id="pNombre" placeholder="Ej: Finca El Progreso — Lote A"></div>
+        <div class="field"><label>Ubicación *</label><input type="text" id="pUbicacion" placeholder="Ej: Quevedo, Los Ríos"></div>
+        <div class="field"><label>Hectáreas</label><input type="number" id="pHectareas" placeholder="0.00" min="0" step="0.01"></div>
+        <div class="field"><label>Variedad de cacao</label><input type="text" id="pVariedad" placeholder="Ej: CCN-51, Nacional Fino..."></div>
+        <div class="field"><label>Responsable</label><input type="text" id="pResponsable" placeholder="Nombre del encargado"></div>
+        <div class="field col-full"><label>Observaciones</label><textarea id="pObservaciones" placeholder="Notas adicionales..."></textarea></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -315,51 +156,28 @@ td.mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(-
     <div class="modal-body">
       <input type="hidden" id="actividadId">
       <div class="form-grid">
-        <div class="field col-full">
-          <label>Parcela *</label>
-          <select id="aParcelaId"></select>
-        </div>
+        <div class="field col-full"><label>Parcela *</label><select id="aParcelaId"></select></div>
         <div class="field">
           <label>Tipo de actividad *</label>
           <select id="aTipo">
-            <option value="PODA">Poda</option>
-            <option value="FUMIGACION">Fumigación</option>
-            <option value="RIEGO">Riego</option>
-            <option value="FERTILIZACION">Fertilización</option>
+            <option value="PODA">Poda</option><option value="FUMIGACION">Fumigación</option>
+            <option value="RIEGO">Riego</option><option value="FERTILIZACION">Fertilización</option>
             <option value="CONTROL_PLAGAS">Control de plagas</option>
-            <option value="LIMPIEZA">Limpieza</option>
-            <option value="OTRO">Otro</option>
+            <option value="LIMPIEZA">Limpieza</option><option value="OTRO">Otro</option>
           </select>
         </div>
         <div class="field">
           <label>Estado *</label>
           <select id="aEstado">
-            <option value="PENDIENTE">Pendiente</option>
-            <option value="EN_PROCESO">En proceso</option>
-            <option value="COMPLETADA">Completada</option>
-            <option value="CANCELADA">Cancelada</option>
+            <option value="PENDIENTE">Pendiente</option><option value="EN_PROCESO">En proceso</option>
+            <option value="COMPLETADA">Completada</option><option value="CANCELADA">Cancelada</option>
           </select>
         </div>
-        <div class="field">
-          <label>Fecha programada *</label>
-          <input type="date" id="aFechaProg">
-        </div>
-        <div class="field">
-          <label>Fecha realizada</label>
-          <input type="date" id="aFechaReal">
-        </div>
-        <div class="field col-full">
-          <label>Responsable</label>
-          <input type="text" id="aResponsable" placeholder="Nombre del responsable">
-        </div>
-        <div class="field col-full">
-          <label>Insumos usados</label>
-          <input type="text" id="aInsumos" placeholder="Ej: Fertilizante NPK 2kg, Fungicida 500ml...">
-        </div>
-        <div class="field col-full">
-          <label>Observaciones</label>
-          <textarea id="aObservaciones" placeholder="Notas adicionales..."></textarea>
-        </div>
+        <div class="field"><label>Fecha programada *</label><input type="date" id="aFechaProg"></div>
+        <div class="field"><label>Fecha realizada</label><input type="date" id="aFechaReal"></div>
+        <div class="field col-full"><label>Responsable</label><input type="text" id="aResponsable" placeholder="Nombre del responsable"></div>
+        <div class="field col-full"><label>Insumos usados</label><input type="text" id="aInsumos" placeholder="Ej: Fertilizante NPK 2kg, Fungicida 500ml..."></div>
+        <div class="field col-full"><label>Observaciones</label><textarea id="aObservaciones" placeholder="Notas adicionales..."></textarea></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -369,314 +187,7 @@ td.mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(-
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
-
-<script>
-  const API = 'http://localhost:8080/api/cultivo';
-  let parcelas = [];
-  let actividades = [];
-  let tabActual = 'parcelas';
-
-  // ── UTILS ──────────────────────────────────────────────
-  function showToast(msg, type = 'success') {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = `toast ${type} show`;
-    setTimeout(() => t.className = 'toast', 3000);
-  }
-
-  function formatFecha(f) {
-    if (!f) return '—';
-    const [y, m, d] = f.split('-');
-    return `${d}/${m}/${y}`;
-  }
-
-  function tipoBadge(tipo) {
-    const map = {
-      PODA: ['badge-poda','Poda'],
-      FUMIGACION: ['badge-fumigacion','Fumigación'],
-      RIEGO: ['badge-riego','Riego'],
-      FERTILIZACION: ['badge-fertilizacion','Fertilización'],
-      CONTROL_PLAGAS: ['badge-control','Control plagas'],
-      LIMPIEZA: ['badge-limpieza','Limpieza'],
-      OTRO: ['badge-otro','Otro']
-    };
-    const [cls, label] = map[tipo] || ['badge-otro', tipo];
-    return `<span class="badge ${cls}">${label}</span>`;
-  }
-
-  function estadoBadge(estado) {
-    const map = {
-      PENDIENTE:  ['badge-pendiente','⏳ Pendiente'],
-      EN_PROCESO: ['badge-en-proceso','🔄 En proceso'],
-      COMPLETADA: ['badge-completada','✓ Completada'],
-      CANCELADA:  ['badge-cancelada','✕ Cancelada']
-    };
-    const [cls, label] = map[estado] || ['badge-otro', estado];
-    return `<span class="badge ${cls}">${label}</span>`;
-  }
-
-  // ── TABS ───────────────────────────────────────────────
-  function switchTab(tab) {
-    tabActual = tab;
-    document.getElementById('vistaParcelas').style.display   = tab === 'parcelas'    ? '' : 'none';
-    document.getElementById('vistaActividades').style.display = tab === 'actividades' ? '' : 'none';
-    document.getElementById('tabParcelas').className    = 'tab' + (tab === 'parcelas'    ? ' active' : '');
-    document.getElementById('tabActividades').className = 'tab' + (tab === 'actividades' ? ' active' : '');
-    document.getElementById('btnNuevo').textContent     = tab === 'parcelas' ? '+ Nueva parcela' : '+ Nueva actividad';
-    document.getElementById('btnNuevo').onclick         = tab === 'parcelas' ? abrirModalParcela : abrirModalActividad;
-    if (tab === 'actividades') cargarActividades();
-  }
-
-  // ── PARCELAS ───────────────────────────────────────────
-  async function cargarParcelas() {
-    try {
-      const res = await fetch(`${API}/parcelas`);
-      parcelas = await res.json();
-      renderParcelas(parcelas);
-      poblarSelectParcelas();
-      cargarVencidas();
-    } catch {
-      document.getElementById('parcelasGrid').innerHTML =
-        '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--border-color)">⚠ No se pudo conectar con el servidor</div>';
-    }
-  }
-
-  function renderParcelas(lista) {
-    const grid = document.getElementById('parcelasGrid');
-    if (!lista.length) {
-      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--border-color)">No hay parcelas registradas</div>';
-      return;
-    }
-    grid.innerHTML = lista.map(p => `
-      <div class="parcela-card">
-        <div class="parcela-name">🌿 ${p.nombre}</div>
-        <div class="parcela-meta">📍 ${p.ubicacion}</div>
-        ${p.hectareas ? `<div class="parcela-meta">📐 ${p.hectareas} ha</div>` : ''}
-        ${p.variedadCacao ? `<div class="parcela-meta">🫘 ${p.variedadCacao}</div>` : ''}
-        ${p.responsable ? `<div class="parcela-meta">👤 ${p.responsable}</div>` : ''}
-        ${p.observaciones ? `<div class="parcela-meta" style="color:var(--border-color);font-style:italic">📝 ${p.observaciones}</div>` : ''}
-        <div class="parcela-actions">
-          <button class="action-btn" onclick="verHistorial(${p.id}, '${p.nombre}')">📋 Ver actividades</button>
-          <button class="action-btn" onclick="abrirEditarParcela(${p.id})">✎ Editar</button>
-          <button class="action-btn danger" onclick="eliminarParcela(${p.id})">✕</button>
-        </div>
-      </div>`).join('');
-  }
-
-  function poblarSelectParcelas() {
-    const selects = ['aParcelaId', 'filtroParcelaAct'];
-    selects.forEach(id => {
-      const sel = document.getElementById(id);
-      const firstOpt = id === 'filtroParcelaAct' ? '<option value="">Todas las parcelas</option>' : '';
-      sel.innerHTML = firstOpt + parcelas.map(p =>
-        `<option value="${p.id}">${p.nombre}</option>`).join('');
-    });
-  }
-
-  document.getElementById('searchParcela').addEventListener('input', function() {
-    const txt = this.value.toLowerCase();
-    renderParcelas(parcelas.filter(p => p.nombre.toLowerCase().includes(txt)));
-  });
-
-  // ── ACTIVIDADES ────────────────────────────────────────
-  async function cargarActividades() {
-    try {
-      const res = await fetch(`${API}/actividades`);
-      actividades = await res.json();
-      filtrarActividades();
-    } catch {
-      document.getElementById('actividadesBody').innerHTML =
-        '<tr><td colspan="8" class="empty-state">⚠ No se pudo conectar</td></tr>';
-    }
-  }
-
-  async function cargarVencidas() {
-    try {
-      const res = await fetch(`${API}/actividades/vencidas`);
-      const vencidas = await res.json();
-      const banner = document.getElementById('alertaBanner');
-      if (vencidas.length > 0) {
-        banner.classList.remove('hidden');
-        document.getElementById('alertaTexto').textContent =
-          `${vencidas.length} actividad(es) vencida(s) sin completar. Revisa la pestaña de Actividades.`;
-      } else {
-        banner.classList.add('hidden');
-      }
-    } catch {}
-  }
-
-  function filtrarActividades() {
-    const parcelaF = document.getElementById('filtroParcelaAct').value;
-    const estadoF  = document.getElementById('filtroEstado').value;
-    const tipoF    = document.getElementById('filtroTipoAct').value;
-    const filtradas = actividades.filter(a =>
-      (!parcelaF || String(a.parcela?.id) === parcelaF) &&
-      (!estadoF  || a.estado === estadoF) &&
-      (!tipoF    || a.tipo   === tipoF)
-    );
-    renderActividades(filtradas);
-  }
-
-  function renderActividades(lista) {
-    const tbody = document.getElementById('actividadesBody');
-    if (!lista.length) {
-      tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No hay actividades registradas</td></tr>';
-      return;
-    }
-    tbody.innerHTML = lista.map(a => `
-      <tr>
-        <td class="name">${a.parcela?.nombre || '—'}</td>
-        <td>${tipoBadge(a.tipo)}</td>
-        <td>${a.responsable || '—'}</td>
-        <td class="mono">${formatFecha(a.fechaProgramada)}</td>
-        <td class="mono">${formatFecha(a.fechaRealizada)}</td>
-        <td style="max-width:180px;font-size:11px;color:var(--text-main)">${a.insumosUsados || '—'}</td>
-        <td>${estadoBadge(a.estado)}</td>
-        <td>
-          <button class="action-btn" onclick="abrirEditarActividad(${a.id})">✎</button>
-          <button class="action-btn danger" onclick="eliminarActividad(${a.id})">✕</button>
-        </td>
-      </tr>`).join('');
-  }
-
-  function verHistorial(parcelaId, nombre) {
-    switchTab('actividades');
-    setTimeout(() => {
-      document.getElementById('filtroParcelaAct').value = parcelaId;
-      filtrarActividades();
-    }, 100);
-  }
-
-  // ── MODAL PARCELA ──────────────────────────────────────
-  function abrirModalParcela() {
-    document.getElementById('modalParcelaTitulo').textContent = 'Nueva parcela';
-    document.getElementById('parcelaId').value = '';
-    ['pNombre','pUbicacion','pVariedad','pResponsable','pObservaciones'].forEach(id =>
-      document.getElementById(id).value = '');
-    document.getElementById('pHectareas').value = '';
-    document.getElementById('modalParcela').classList.add('open');
-  }
-
-  function abrirEditarParcela(id) {
-    const p = parcelas.find(x => x.id === id);
-    if (!p) return;
-    document.getElementById('modalParcelaTitulo').textContent = 'Editar parcela';
-    document.getElementById('parcelaId').value     = p.id;
-    document.getElementById('pNombre').value       = p.nombre;
-    document.getElementById('pUbicacion').value    = p.ubicacion;
-    document.getElementById('pHectareas').value    = p.hectareas || '';
-    document.getElementById('pVariedad').value     = p.variedadCacao || '';
-    document.getElementById('pResponsable').value  = p.responsable || '';
-    document.getElementById('pObservaciones').value = p.observaciones || '';
-    document.getElementById('modalParcela').classList.add('open');
-  }
-
-  async function guardarParcela() {
-    const nombre    = document.getElementById('pNombre').value.trim();
-    const ubicacion = document.getElementById('pUbicacion').value.trim();
-    if (!nombre || !ubicacion) { showToast('Nombre y ubicación son obligatorios', 'error'); return; }
-    const id   = document.getElementById('parcelaId').value;
-    const body = {
-      nombre, ubicacion,
-      hectareas:    document.getElementById('pHectareas').value    || null,
-      variedadCacao: document.getElementById('pVariedad').value.trim()    || null,
-      responsable:  document.getElementById('pResponsable').value.trim()  || null,
-      observaciones: document.getElementById('pObservaciones').value.trim() || null
-    };
-    const url    = id ? `${API}/parcelas/${id}` : `${API}/parcelas`;
-    const method = id ? 'PUT' : 'POST';
-    try {
-      const res = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
-      if (!res.ok) throw new Error();
-      cerrarModal('modalParcela');
-      showToast(id ? 'Parcela actualizada ✓' : 'Parcela creada ✓');
-      cargarParcelas();
-    } catch { showToast('Error al guardar parcela', 'error'); }
-  }
-
-  async function eliminarParcela(id) {
-    if (!confirm('¿Eliminar esta parcela? También se eliminarán sus actividades.')) return;
-    try {
-      await fetch(`${API}/parcelas/${id}`, { method: 'DELETE' });
-      showToast('Parcela eliminada');
-      cargarParcelas();
-    } catch { showToast('Error al eliminar', 'error'); }
-  }
-
-  // ── MODAL ACTIVIDAD ────────────────────────────────────
-  function abrirModalActividad() {
-    document.getElementById('modalActividadTitulo').textContent = 'Nueva actividad';
-    document.getElementById('actividadId').value = '';
-    document.getElementById('aTipo').value    = 'PODA';
-    document.getElementById('aEstado').value  = 'PENDIENTE';
-    document.getElementById('aFechaProg').value = '';
-    document.getElementById('aFechaReal').value = '';
-    ['aResponsable','aInsumos','aObservaciones'].forEach(id =>
-      document.getElementById(id).value = '');
-    document.getElementById('modalActividad').classList.add('open');
-  }
-
-  function abrirEditarActividad(id) {
-    const a = actividades.find(x => x.id === id);
-    if (!a) return;
-    document.getElementById('modalActividadTitulo').textContent = 'Editar actividad';
-    document.getElementById('actividadId').value    = a.id;
-    document.getElementById('aParcelaId').value     = a.parcela?.id || '';
-    document.getElementById('aTipo').value          = a.tipo;
-    document.getElementById('aEstado').value        = a.estado;
-    document.getElementById('aFechaProg').value     = a.fechaProgramada || '';
-    document.getElementById('aFechaReal').value     = a.fechaRealizada  || '';
-    document.getElementById('aResponsable').value   = a.responsable     || '';
-    document.getElementById('aInsumos').value       = a.insumosUsados   || '';
-    document.getElementById('aObservaciones').value = a.observaciones   || '';
-    document.getElementById('modalActividad').classList.add('open');
-  }
-
-  async function guardarActividad() {
-    const parcelaId   = document.getElementById('aParcelaId').value;
-    const fechaProg   = document.getElementById('aFechaProg').value;
-    if (!parcelaId || !fechaProg) { showToast('Parcela y fecha programada son obligatorias', 'error'); return; }
-    const id   = document.getElementById('actividadId').value;
-    const body = {
-      tipo:           document.getElementById('aTipo').value,
-      estado:         document.getElementById('aEstado').value,
-      fechaProgramada: fechaProg,
-      fechaRealizada: document.getElementById('aFechaReal').value || null,
-      responsable:    document.getElementById('aResponsable').value.trim() || null,
-      insumosUsados:  document.getElementById('aInsumos').value.trim()     || null,
-      observaciones:  document.getElementById('aObservaciones').value.trim() || null
-    };
-    const url    = id ? `${API}/actividades/${id}` : `${API}/actividades/parcela/${parcelaId}`;
-    const method = id ? 'PUT' : 'POST';
-    try {
-      const res = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
-      const data = await res.json();
-      if (!res.ok) { showToast('Error: ' + (data.error || 'Verifica los datos'), 'error'); return; }
-      cerrarModal('modalActividad');
-      showToast(id ? 'Actividad actualizada ✓' : 'Actividad creada ✓');
-      cargarActividades();
-    } catch { showToast('Error al guardar actividad', 'error'); }
-  }
-
-  async function eliminarActividad(id) {
-    if (!confirm('¿Eliminar esta actividad?')) return;
-    try {
-      await fetch(`${API}/actividades/${id}`, { method: 'DELETE' });
-      showToast('Actividad eliminada');
-      cargarActividades();
-    } catch { showToast('Error al eliminar', 'error'); }
-  }
-
-  // ── HELPERS ────────────────────────────────────────────
-  function cerrarModal(id) { document.getElementById(id).classList.remove('open'); }
-  document.querySelectorAll('.modal-overlay').forEach(m => {
-    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
-  });
-
-  // INIT
-  cargarParcelas();
-</script>
+<script src="js/cultivo.js"></script>
 </body>
 </html>
