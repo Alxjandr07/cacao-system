@@ -8,8 +8,6 @@
   <link rel="stylesheet" href="css/cacaogest.css">
 </head>
 <body>
-
-<!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="sidebar-logo">
     <div class="logo-icon">🫘</div>
@@ -21,17 +19,14 @@
   <div class="nav-body">
     <div class="nav-section-label">PRINCIPAL</div>
     <a class="nav-item" href="dashboard.html"><span class="nav-icon">⊞</span> Dashboard</a>
-
     <div class="nav-section-label">GESTIÓN</div>
     <a class="nav-item" href="usuarios.html"><span class="nav-icon">👥</span> Usuarios y Roles</a>
     <a class="nav-item" href="personal.html"><span class="nav-icon">👤</span> Gestión de Personal</a>
     <a class="nav-item" href="proveedores.html"><span class="nav-icon">🚚</span> Proveedores</a>
-
     <div class="nav-section-label">PRODUCCIÓN</div>
     <a class="nav-item active" href="inventario.html"><span class="nav-icon">📦</span> Inventario</a>
     <a class="nav-item" href="cultivo.html"><span class="nav-icon">🌱</span> Cultivo y Mant.</a>
     <a class="nav-item" href="cosecha.html"><span class="nav-icon">🫘</span> Cosecha</a>
-
     <div class="nav-section-label">COMERCIAL</div>
     <a class="nav-item" href="ventas.html"><span class="nav-icon">💰</span> Ventas</a>
     <a class="nav-item" href="facturacion.html"><span class="nav-icon">🧾</span> Facturación y Reportes</a>
@@ -39,15 +34,11 @@
   </div>
   <div class="sidebar-user">
     <div class="user-avatar">🌿</div>
-    <div class="user-info">
-      <div class="uname">Administrador</div>
-      <div class="urole">admin123</div>
-    </div>
+    <div class="user-info"><div class="uname">Administrador</div><div class="urole">admin123</div></div>
     <span class="user-chevron">▲</span>
   </div>
 </aside>
 
-<!-- MAIN -->
 <div class="main">
   <div class="topbar">
     <div>
@@ -56,12 +47,8 @@
     </div>
     <button class="btn-primary" onclick="abrirModalProducto()">+ Nuevo ingreso</button>
   </div>
-
   <div class="content">
-    <div class="alert-banner hidden" id="alertaBanner">
-      ⚠ <span id="alertaTexto"></span>
-    </div>
-
+    <div class="alert-banner hidden" id="alertaBanner">⚠ <span id="alertaTexto"></span></div>
     <div class="toolbar">
       <input class="search-input" type="text" id="searchInput" placeholder="🔍 Buscar producto...">
       <select class="filter-select" id="filtroTipo" onchange="filtrar()">
@@ -71,23 +58,12 @@
       </select>
       <button class="btn-outline" onclick="cargarProductos()">↻ Actualizar</button>
     </div>
-
     <div class="table-wrap">
       <table>
         <thead>
-          <tr>
-            <th>Producto</th>
-            <th>Tipo</th>
-            <th>Stock actual</th>
-            <th>Stock mínimo</th>
-            <th>Últ. movimiento</th>
-            <th>Estado</th>
-            <th>Acción</th>
-          </tr>
+          <tr><th>Producto</th><th>Tipo</th><th>Stock actual</th><th>Stock mínimo</th><th>Últ. movimiento</th><th>Estado</th><th>Acción</th></tr>
         </thead>
-        <tbody id="tablaBody">
-          <tr><td colspan="7" class="empty-state">Cargando inventario...</td></tr>
-        </tbody>
+        <tbody id="tablaBody"><tr><td colspan="7" class="empty-state">Cargando inventario...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -116,7 +92,14 @@
         </div>
         <div class="field">
           <label>Unidad de medida *</label>
-          <input type="text" id="pUnidad" placeholder="kg, litros, unidades...">
+          <select id="pUnidad">
+            <option value="">Selecciona unidad...</option>
+            <option value="kg">Kilogramos (kg)</option>
+            <option value="tonelada">Toneladas</option>
+            <option value="quintal">Quintales</option>
+            <option value="litro">Litros</option>
+            <option value="unidad">Unidades</option>
+          </select>
         </div>
         <div class="field">
           <label>Stock inicial *</label>
@@ -152,12 +135,10 @@
         <label>Tipo de movimiento *</label>
         <div class="mov-types">
           <label class="mov-type-label selected-entrada" id="labelEntrada">
-            <input type="radio" name="movTipo" value="ENTRADA" checked onchange="updateMovLabel()">
-            ↑ Entrada de stock
+            <input type="radio" name="movTipo" value="ENTRADA" checked onchange="updateMovLabel()"> ↑ Entrada
           </label>
           <label class="mov-type-label" id="labelSalida">
-            <input type="radio" name="movTipo" value="SALIDA" onchange="updateMovLabel()">
-            ↓ Salida de stock
+            <input type="radio" name="movTipo" value="SALIDA" onchange="updateMovLabel()"> ↓ Salida
           </label>
         </div>
       </div>

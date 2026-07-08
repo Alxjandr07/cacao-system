@@ -8,8 +8,6 @@
   <link rel="stylesheet" href="css/cacaogest.css">
 </head>
 <body>
-
-<!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="sidebar-logo">
     <div class="logo-icon">🫘</div>
@@ -21,17 +19,14 @@
   <div class="nav-body">
     <div class="nav-section-label">PRINCIPAL</div>
     <a class="nav-item" href="dashboard.html"><span class="nav-icon">⊞</span> Dashboard</a>
-
     <div class="nav-section-label">GESTIÓN</div>
     <a class="nav-item" href="usuarios.html"><span class="nav-icon">👥</span> Usuarios y Roles</a>
     <a class="nav-item" href="personal.html"><span class="nav-icon">👤</span> Gestión de Personal</a>
     <a class="nav-item" href="proveedores.html"><span class="nav-icon">🚚</span> Proveedores</a>
-
     <div class="nav-section-label">PRODUCCIÓN</div>
     <a class="nav-item" href="inventario.html"><span class="nav-icon">📦</span> Inventario</a>
     <a class="nav-item active" href="cultivo.html"><span class="nav-icon">🌱</span> Cultivo y Mant.</a>
     <a class="nav-item" href="cosecha.html"><span class="nav-icon">🫘</span> Cosecha</a>
-
     <div class="nav-section-label">COMERCIAL</div>
     <a class="nav-item" href="ventas.html"><span class="nav-icon">💰</span> Ventas</a>
     <a class="nav-item" href="facturacion.html"><span class="nav-icon">🧾</span> Facturación y Reportes</a>
@@ -39,15 +34,11 @@
   </div>
   <div class="sidebar-user">
     <div class="user-avatar">🌿</div>
-    <div class="user-info">
-      <div class="uname">Administrador</div>
-      <div class="urole">admin123</div>
-    </div>
+    <div class="user-info"><div class="uname">Administrador</div><div class="urole">admin123</div></div>
     <span class="user-chevron">▲</span>
   </div>
 </aside>
 
-<!-- MAIN -->
 <div class="main">
   <div class="topbar">
     <div>
@@ -56,18 +47,13 @@
     </div>
     <button class="btn-primary" id="btnNuevo" onclick="abrirModalParcela()">+ Nueva parcela</button>
   </div>
-
   <div class="content">
-    <div class="alert-banner hidden" id="alertaBanner">
-      ⚠ <span id="alertaTexto"></span>
-    </div>
-
+    <div class="alert-banner hidden" id="alertaBanner">⚠ <span id="alertaTexto"></span></div>
     <div class="tabs">
       <button class="tab active" id="tabParcelas" onclick="switchTab('parcelas')">🗺 Parcelas</button>
       <button class="tab" id="tabActividades" onclick="switchTab('actividades')">📋 Actividades</button>
     </div>
 
-    <!-- VISTA PARCELAS -->
     <div id="vistaParcelas">
       <div class="toolbar">
         <input class="search-input" type="text" id="searchParcela" placeholder="🔍 Buscar parcela...">
@@ -78,7 +64,6 @@
       </div>
     </div>
 
-    <!-- VISTA ACTIVIDADES -->
     <div id="vistaActividades" style="display:none;">
       <div class="toolbar">
         <select class="filter-select" id="filtroParcelaAct" onchange="filtrarActividades()">
@@ -106,11 +91,7 @@
       <div class="table-wrap">
         <table>
           <thead>
-            <tr>
-              <th>Parcela</th><th>Tipo</th><th>Responsable</th>
-              <th>Fecha programada</th><th>Fecha realizada</th>
-              <th>Insumos usados</th><th>Estado</th><th>Acción</th>
-            </tr>
+            <tr><th>Parcela</th><th>Tipo</th><th>Responsable</th><th>F. Programada</th><th>F. Realizada</th><th>Insumos</th><th>Estado</th><th>Acción</th></tr>
           </thead>
           <tbody id="actividadesBody">
             <tr><td colspan="8" class="empty-state">Cargando actividades...</td></tr>
@@ -131,12 +112,46 @@
     <div class="modal-body">
       <input type="hidden" id="parcelaId">
       <div class="form-grid">
-        <div class="field col-full"><label>Nombre de la parcela *</label><input type="text" id="pNombre" placeholder="Ej: Finca El Progreso — Lote A"></div>
-        <div class="field"><label>Ubicación *</label><input type="text" id="pUbicacion" placeholder="Ej: Quevedo, Los Ríos"></div>
-        <div class="field"><label>Hectáreas</label><input type="number" id="pHectareas" placeholder="0.00" min="0" step="0.01"></div>
-        <div class="field"><label>Variedad de cacao</label><input type="text" id="pVariedad" placeholder="Ej: CCN-51, Nacional Fino..."></div>
-        <div class="field"><label>Responsable</label><input type="text" id="pResponsable" placeholder="Nombre del encargado"></div>
-        <div class="field col-full"><label>Observaciones</label><textarea id="pObservaciones" placeholder="Notas adicionales..."></textarea></div>
+        <div class="field col-full">
+          <label>Nombre de la parcela *</label>
+          <input type="text" id="pNombre" placeholder="Ej: Finca El Progreso — Lote A">
+        </div>
+        <div class="field">
+          <label>Provincia *</label>
+          <select id="pProvincia" onchange="onProvinciaChange()">
+            <option value="">Selecciona provincia...</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Cantón *</label>
+          <select id="pCanton">
+            <option value="">Primero selecciona provincia</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Hectáreas</label>
+          <input type="number" id="pHectareas" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div class="field">
+          <label>Variedad de cacao</label>
+          <select id="pVariedad">
+            <option value="">Selecciona variedad...</option>
+            <option value="CCN-51">CCN-51</option>
+            <option value="Nacional Fino de Aroma">Nacional Fino de Aroma</option>
+            <option value="Trinitario">Trinitario</option>
+            <option value="Forastero">Forastero</option>
+            <option value="Criollo">Criollo</option>
+            <option value="Mixto">Mixto</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Responsable</label>
+          <input type="text" id="pResponsable" placeholder="Nombre del encargado">
+        </div>
+        <div class="field col-full">
+          <label>Observaciones</label>
+          <textarea id="pObservaciones" placeholder="Notas adicionales..."></textarea>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -156,28 +171,53 @@
     <div class="modal-body">
       <input type="hidden" id="actividadId">
       <div class="form-grid">
-        <div class="field col-full"><label>Parcela *</label><select id="aParcelaId"></select></div>
+        <div class="field col-full">
+          <label>Parcela *</label>
+          <select id="aParcelaId"><option value="">Selecciona parcela...</option></select>
+        </div>
         <div class="field">
           <label>Tipo de actividad *</label>
           <select id="aTipo">
-            <option value="PODA">Poda</option><option value="FUMIGACION">Fumigación</option>
-            <option value="RIEGO">Riego</option><option value="FERTILIZACION">Fertilización</option>
+            <option value="PODA">Poda</option>
+            <option value="FUMIGACION">Fumigación</option>
+            <option value="RIEGO">Riego</option>
+            <option value="FERTILIZACION">Fertilización</option>
             <option value="CONTROL_PLAGAS">Control de plagas</option>
-            <option value="LIMPIEZA">Limpieza</option><option value="OTRO">Otro</option>
+            <option value="LIMPIEZA">Limpieza</option>
+            <option value="OTRO">Otro</option>
           </select>
         </div>
         <div class="field">
           <label>Estado *</label>
           <select id="aEstado">
-            <option value="PENDIENTE">Pendiente</option><option value="EN_PROCESO">En proceso</option>
-            <option value="COMPLETADA">Completada</option><option value="CANCELADA">Cancelada</option>
+            <option value="PENDIENTE">Pendiente</option>
+            <option value="EN_PROCESO">En proceso</option>
+            <option value="COMPLETADA">Completada</option>
+            <option value="CANCELADA">Cancelada</option>
           </select>
         </div>
-        <div class="field"><label>Fecha programada *</label><input type="date" id="aFechaProg"></div>
-        <div class="field"><label>Fecha realizada</label><input type="date" id="aFechaReal"></div>
-        <div class="field col-full"><label>Responsable</label><input type="text" id="aResponsable" placeholder="Nombre del responsable"></div>
-        <div class="field col-full"><label>Insumos usados</label><input type="text" id="aInsumos" placeholder="Ej: Fertilizante NPK 2kg, Fungicida 500ml..."></div>
-        <div class="field col-full"><label>Observaciones</label><textarea id="aObservaciones" placeholder="Notas adicionales..."></textarea></div>
+        <div class="field">
+          <label>Fecha programada *</label>
+          <input type="date" id="aFechaProg">
+        </div>
+        <div class="field">
+          <label>Fecha realizada</label>
+          <input type="date" id="aFechaReal">
+        </div>
+        <div class="field col-full">
+          <label>Responsable</label>
+          <input type="text" id="aResponsable" placeholder="Nombre del responsable">
+        </div>
+        <div class="field col-full">
+          <label>Insumo utilizado</label>
+          <select id="aInsumos">
+            <option value="">Selecciona insumo...</option>
+          </select>
+        </div>
+        <div class="field col-full">
+          <label>Observaciones</label>
+          <textarea id="aObservaciones" placeholder="Notas adicionales..."></textarea>
+        </div>
       </div>
     </div>
     <div class="modal-footer">

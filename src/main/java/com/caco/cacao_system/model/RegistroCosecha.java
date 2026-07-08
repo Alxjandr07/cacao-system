@@ -1,5 +1,6 @@
 package com.caco.cacao_system.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -18,12 +19,12 @@ public class RegistroCosecha {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Número de lote generado automáticamente Ej: #C-2026-001
     @Column(nullable = false, unique = true)
     private String numeroLote;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parcela_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "actividadesMantenimiento"})
     private Parcela parcela;
 
     @Column(nullable = false)
@@ -40,9 +41,9 @@ public class RegistroCosecha {
 
     private String observaciones;
 
-    // Para trazabilidad — referencia al producto en inventario
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "producto_inventario_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private ProductoInventario productoInventario;
 
     @Column(nullable = false, updatable = false)
