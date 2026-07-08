@@ -139,6 +139,26 @@ td.lote { font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:700
 .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 .col-full { grid-column:1/-1; }
 
+/* ESTADO TOGGLE */
+.estado-toggle { display:flex; gap:8px; }
+.estado-option { flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:9px 12px; border:0.8px solid var(--border-color); border-radius:7px; cursor:pointer; font-size:13px; font-family:'DM Sans',sans-serif; color:var(--text-main); transition:all 0.15s; background:var(--cream); }
+.estado-option input { display:none; }
+.estado-option.selected { border-color:var(--green); background:#f0f7e6; color:var(--green-dark); font-weight:600; }
+.estado-option:has(input[value="false"]).selected { border-color:var(--red-text); background:#fff0f0; color:var(--red-text); }
+
+/* SHOW PASSWORD */
+.show-pw { display:inline-flex; align-items:center; gap:6px; margin-top:6px; font-size:12px; color:var(--text-main); cursor:pointer; font-family:'DM Sans',sans-serif; }
+.show-pw input { width:auto; margin:0; accent-color:var(--green); }
+.pw-hint { display:block; font-size:10px; color:var(--border-color); margin-top:2px; }
+
+/* PERMISOS CHECKBOXES */
+.permisos-group { margin-bottom:10px; }
+.permisos-group-label { font-family:'Inter',sans-serif; font-weight:700; font-size:10px; color:var(--green); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; padding-bottom:4px; border-bottom:0.8px solid #eee; }
+.permisos-grid { display:grid; grid-template-columns:1fr 1fr; gap:4px; }
+.permiso-check { display:flex; align-items:center; gap:8px; padding:4px 6px; border-radius:4px; cursor:pointer; font-size:12px; color:var(--text-dark); transition:background 0.1s; }
+.permiso-check:hover { background:#f0f7e6; }
+.permiso-check input { width:auto; margin:0; cursor:pointer; accent-color:var(--green); }
+
 /* VALIDACIONES */
 .field-error { display:block; font-size:11px; color:var(--red-text); margin-top:4px; font-family:'Inter',sans-serif; }
 .input-error { border-color:var(--red-text) !important; background:#fff5f5 !important; }
