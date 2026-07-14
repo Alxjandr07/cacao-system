@@ -36,13 +36,13 @@ public class AuthController {
             return ResponseEntity.status(403).body(Map.of("error", "Usuario inactivo"));
         }
 
-        return ResponseEntity.ok(Map.of(
-            "mensaje", "Login exitoso",
-            "username", usuario.get().getUsername(),
-            "nombres", usuario.get().getNombres(),
-            "apellidos", usuario.get().getApellidos(),
-            "rol", usuario.get().getRol().getNombre()
-        ));
+        Map<String, Object> response = new java.util.HashMap<>();
+        response.put("mensaje", "Login exitoso");
+        response.put("username", usuario.get().getUsername());
+        response.put("nombres", usuario.get().getNombres());
+        response.put("apellidos", usuario.get().getApellidos());
+        response.put("rol", usuario.get().getRol().getNombre());
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/registro")
