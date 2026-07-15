@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Facturación — CacaoGest</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=DM+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/cacaogest.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🫘</div>
+    <div class="logo-text">
+      <div class="brand"><span class="cacao">CACAO</span><span class="gest">GEST</span></div>
+      <div class="cycle">Ciclo 2026</div>
+    </div>
+  </div>
+  <div class="nav-body">
+    <div class="nav-section-label">PRINCIPAL</div>
+    <a class="nav-item" href="dashboard.html"><span class="nav-icon">⊞</span> Dashboard</a>
+    <div class="nav-section-label">GESTIÓN</div>
+    <a class="nav-item" href="usuarios.html"><span class="nav-icon">👥</span> Usuarios y Roles</a>
+    <a class="nav-item" href="personal.html"><span class="nav-icon">👤</span> Gestión de Personal</a>
+    <a class="nav-item" href="proveedores.html"><span class="nav-icon">🚚</span> Proveedores</a>
+    <div class="nav-section-label">PRODUCCIÓN</div>
+    <a class="nav-item" href="inventario.html"><span class="nav-icon">📦</span> Inventario</a>
+    <a class="nav-item" href="cultivo.html"><span class="nav-icon">🌱</span> Cultivo y Mant.</a>
+    <a class="nav-item" href="cosecha.html"><span class="nav-icon">🫘</span> Cosecha</a>
+    <div class="nav-section-label">COMERCIAL</div>
+    <a class="nav-item" href="ventas.html"><span class="nav-icon">💰</span> Ventas</a>
+    <a class="nav-item active" href="facturacion.html"><span class="nav-icon">🧾</span> Facturación y Reportes</a>
+    <a class="nav-item" href="trazabilidad.html"><span class="nav-icon">🔍</span> Trazabilidad</a>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar">🌿</div>
+    <div class="user-info">
+      <div class="uname" id="sidebarNombre">Cargando...</div>
+      <div class="urole" id="sidebarRol"></div>
+    </div>
+    <span class="user-chevron">▲</span>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Facturación y Reportes</div>
+      <div class="page-sub">Gestión de facturas del ciclo 2026</div>
+    </div>
+    <button class="btn-primary" onclick="abrirModalFactura()">+ Nueva factura</button>
+  </div>
+
+  <div class="content">
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Total Facturas</div>
+        <div class="kpi-value" id="kpiTotal">0</div>
+        <div class="kpi-sub">emitidas en 2026</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Emitidas</div>
+        <div class="kpi-value" id="kpiEmitidas">0</div>
+        <div class="kpi-sub">pendientes de pago</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Pagadas</div>
+        <div class="kpi-value" id="kpiPagadas">0</div>
+        <div class="kpi-sub">completadas</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Anuladas</div>
+        <div class="kpi-value" id="kpiAnuladas">0</div>
+        <div class="kpi-sub">canceladas</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <input class="search-input" type="text" id="searchInput" placeholder="🔍 Buscar cliente o número...">
+      <select class="filter-select" id="filtroEstado" onchange="filtrar()">
+        <option value="">Todos los estados</option>
+        <option value="EMITIDA">Emitida</option>
+        <option value="PAGADA">Pagada</option>
+        <option value="ANULADA">Anulada</option>
+      </select>
+      <button class="btn-outline" onclick="cargarFacturas()">↻ Actualizar</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>N° Factura</th>
+            <th>Cliente</th>
+            <th>Cédula</th>
+            <th>Fecha emisión</th>
+            <th>Subtotal</th>
+            <th>IVA</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="tablaBody">
+          <tr><td colspan="9" class="empty-state">Cargando facturas...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FACTURA -->
+<div class="modal-overlay" id="modalFactura">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalFacturaTitulo">Nueva factura</span>
+      <button class="modal-close" onclick="cerrarModal('modalFactura')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="facturaId">
+      <div class="form-grid">
+        <div class="field">
+          <label>N° Factura</label>
+          <input type="text" id="fNumero" placeholder="Auto-generado" readonly>
+        </div>
+        <div class="field">
+          <label>Estado</label>
+          <select id="fEstado">
+            <option value="EMITIDA">Emitida</option>
+            <option value="PAGADA">Pagada</option>
+            <option value="ANULADA">Anulada</option>
+          </select>
+        </div>
+        <div class="field col-full">
+          <label>Nombre del cliente *</label>
+          <input type="text" id="fNombreCliente" placeholder="Nombre completo del cliente">
+        </div>
+        <div class="field">
+          <label>Cédula del cliente</label>
+          <input type="text" id="fCedulaCliente" placeholder="0000000000">
+        </div>
+        <div class="field">
+          <label>Dirección</label>
+          <input type="text" id="fDireccion" placeholder="Dirección del cliente">
+        </div>
+        <div class="field">
+          <label>Subtotal *</label>
+          <input type="number" id="fSubtotal" placeholder="0.00" min="0" step="0.01" oninput="calcularTotal()">
+        </div>
+        <div class="field">
+          <label>IVA (15%)</label>
+          <input type="number" id="fIva" placeholder="0.00" readonly>
+        </div>
+        <div class="field">
+          <label>Total</label>
+          <input type="number" id="fTotal" placeholder="0.00" readonly>
+        </div>
+        <div class="field col-full">
+          <label>Observaciones</label>
+          <textarea id="fObservaciones" placeholder="Opcional..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="cerrarModal('modalFactura')">Cancelar</button>
+      <button class="btn-primary" onclick="guardarFactura()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="js/facturacion.js"></script>
+</body>
+</html>
