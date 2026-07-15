@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trazabilidad — CacaoGest</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=DM+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/cacaogest.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🫘</div>
+    <div class="logo-text">
+      <div class="brand"><span class="cacao">CACAO</span><span class="gest">GEST</span></div>
+      <div class="cycle">Ciclo 2026</div>
+    </div>
+  </div>
+  <div class="nav-body">
+    <div class="nav-section-label">PRINCIPAL</div>
+    <a class="nav-item" href="dashboard.html"><span class="nav-icon">⊞</span> Dashboard</a>
+    <div class="nav-section-label">GESTIÓN</div>
+    <a class="nav-item" href="usuarios.html"><span class="nav-icon">👥</span> Usuarios y Roles</a>
+    <a class="nav-item" href="personal.html"><span class="nav-icon">👤</span> Gestión de Personal</a>
+    <a class="nav-item" href="proveedores.html"><span class="nav-icon">🚚</span> Proveedores</a>
+    <div class="nav-section-label">PRODUCCIÓN</div>
+    <a class="nav-item" href="inventario.html"><span class="nav-icon">📦</span> Inventario</a>
+    <a class="nav-item" href="cultivo.html"><span class="nav-icon">🌱</span> Cultivo y Mant.</a>
+    <a class="nav-item" href="cosecha.html"><span class="nav-icon">🫘</span> Cosecha</a>
+    <div class="nav-section-label">COMERCIAL</div>
+    <a class="nav-item" href="ventas.html"><span class="nav-icon">💰</span> Ventas</a>
+    <a class="nav-item" href="facturacion.html"><span class="nav-icon">🧾</span> Facturación y Reportes</a>
+    <a class="nav-item active" href="trazabilidad.html"><span class="nav-icon">🔍</span> Trazabilidad</a>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar">🌿</div>
+    <div class="user-info">
+      <div class="uname" id="sidebarNombre">Cargando...</div>
+      <div class="urole" id="sidebarRol"></div>
+    </div>
+    <span class="user-chevron">▲</span>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Trazabilidad</div>
+      <div class="page-sub">Seguimiento del cacao: cultivo → cosecha → inventario → venta</div>
+    </div>
+    <button class="btn-primary" onclick="abrirModalLote()">+ Nuevo lote</button>
+  </div>
+
+  <div class="content">
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Total Lotes</div>
+        <div class="kpi-value" id="kpiTotal">0</div>
+        <div class="kpi-sub">registrados 2026</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Cosechados</div>
+        <div class="kpi-value" id="kpiCosechados">0</div>
+        <div class="kpi-sub">en espera</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">En Inventario</div>
+        <div class="kpi-value" id="kpiInventario">0</div>
+        <div class="kpi-sub">disponibles</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Vendidos</div>
+        <div class="kpi-value" id="kpiVendidos">0</div>
+        <div class="kpi-sub">completados</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <input class="search-input" type="text" id="searchInput" placeholder="🔍 Buscar lote o cliente...">
+      <select class="filter-select" id="filtroEstado" onchange="filtrar()">
+        <option value="">Todos los estados</option>
+        <option value="COSECHADO">Cosechado</option>
+        <option value="EN_PROCESO">En Proceso</option>
+        <option value="EN_INVENTARIO">En Inventario</option>
+        <option value="VENDIDO">Vendido</option>
+        <option value="PARCIAL">Parcial</option>
+      </select>
+      <button class="btn-outline" onclick="cargarLotes()">↻ Actualizar</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Código Lote</th>
+            <th>Parcela</th>
+            <th>Fecha Cosecha</th>
+            <th>Cosechado (kg)</th>
+            <th>Procesado (kg)</th>
+            <th>Vendido (kg)</th>
+            <th>Cliente</th>
+            <th>N° Factura</th>
+            <th>Estado</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="tablaBody">
+          <tr><td colspan="10" class="empty-state">Cargando lotes...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL LOTE -->
+<div class="modal-overlay" id="modalLote">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalLoteTitulo">Nuevo lote</span>
+      <button class="modal-close" onclick="cerrarModal('modalLote')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="loteId">
+      <div class="form-grid">
+        <div class="field">
+          <label>Código de lote</label>
+          <input type="text" id="lCodigo" placeholder="Auto-generado" readonly>
+        </div>
+        <div class="field">
+          <label>Estado *</label>
+          <select id="lEstado">
+            <option value="COSECHADO">Cosechado</option>
+            <option value="EN_PROCESO">En Proceso</option>
+            <option value="EN_INVENTARIO">En Inventario</option>
+            <option value="VENDIDO">Vendido</option>
+            <option value="PARCIAL">Parcial</option>
+          </select>
+        </div>
+        <div class="field col-full">
+          <label>Parcela</label>
+          <input type="text" id="lParcela" placeholder="Nombre de la parcela">
+        </div>
+        <div class="field">
+          <label>Fecha de cosecha</label>
+          <input type="datetime-local" id="lFechaCosecha">
+        </div>
+        <div class="field">
+          <label>Cantidad cosechada (kg)</label>
+          <input type="number" id="lCosechada" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div class="field">
+          <label>Cantidad procesada (kg)</label>
+          <input type="number" id="lProcesada" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div class="field">
+          <label>Cantidad vendida (kg)</label>
+          <input type="number" id="lVendida" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div class="field">
+          <label>N° Factura</label>
+          <input type="text" id="lNumeroFactura" placeholder="FAC-0001-2026">
+        </div>
+        <div class="field col-full">
+          <label>Nombre del cliente</label>
+          <input type="text" id="lCliente" placeholder="Cliente al que se vendió">
+        </div>
+        <div class="field col-full">
+          <label>Observaciones</label>
+          <textarea id="lObservaciones" placeholder="Opcional..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="cerrarModal('modalLote')">Cancelar</button>
+      <button class="btn-primary" onclick="guardarLote()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="js/trazabilidad.js"></script>
+</body>
+</html>
