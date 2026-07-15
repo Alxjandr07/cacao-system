@@ -266,8 +266,8 @@ async function guardarMovimiento() {
 
 // ── HELPERS ──────────────────────────────────────────
 function cerrarModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
-});
+//document.querySelectorAll('.modal-overlay').forEach(m => {
+//m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+//});
 
 cargarProductos();
