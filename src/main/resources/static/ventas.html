@@ -3,12 +3,149 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registro de Venta — CacaoGest</title>
+  <title>Ventas — CacaoGest</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=DM+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/cacaogest.css">
+  <style>
+    .section-card {
+      background: #fff;
+      border: 0.8px solid var(--border-color);
+      border-radius: 10px;
+      padding: 20px 22px;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--green);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 0.8px solid #eee;
+    }
+    .venta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .col-span-2 { grid-column: 1 / -1; }
+    .col-full { grid-column: 1 / -1; }
+    .autocomplete-wrap { position: relative; }
+    .autocomplete-dropdown {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 0.8px solid var(--border-color);
+      border-radius: 7px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      z-index: 100;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+    .autocomplete-dropdown.open { display: block; }
+    .autocomplete-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 0.8px solid #eee;
+      transition: background 0.1s;
+    }
+    .autocomplete-item:last-child { border-bottom: none; }
+    .autocomplete-item:hover { background: #f0f7e6; }
+    .cli-name {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text-dark);
+    }
+    .cli-meta {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--text-main);
+      margin-top: 3px;
+      display: flex;
+      gap: 12px;
+    }
+    .required { color: var(--green); }
+    .stock-info {
+      background: var(--cream);
+      border: 0.8px solid var(--border-color);
+      border-radius: 7px;
+      padding: 9px 12px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      color: var(--text-dark);
+    }
+    .stock-val { font-weight: 700; color: var(--green); }
+    .total-display {
+      background: var(--green);
+      border-radius: 10px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .total-label {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      color: rgba(255,255,255,0.8);
+    }
+    .total-amount {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: 28px;
+      color: #fff;
+      letter-spacing: -0.03em;
+    }
+    .warning-banner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--amber);
+      border: 0.8px solid var(--amber-border);
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--amber-text);
+      margin-bottom: 16px;
+    }
+    .warning-banner.hidden { display: none; }
+    .spinner-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .spinner-overlay.open { display: flex; }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    .spinner-text {
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 </head>
 <body>
 
+<!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="sidebar-logo">
     <div class="logo-icon">🫘</div>
@@ -34,16 +171,21 @@
     <a class="nav-item" href="facturacion.html"><span class="nav-icon">🧾</span> Facturación y Reportes</a>
     <a class="nav-item" href="trazabilidad.html"><span class="nav-icon">🔍</span> Trazabilidad</a>
   </div>
-  <div class="sidebar-user">
-    <div class="user-avatar">🌿</div>
-    <div class="user-info">
-      <div class="uname" id="sidebarNombre">Cargando...</div>
-      <div class="urole" id="sidebarRol"></div>
+  <div class="sidebar-user" style="flex-direction:column; gap:10px;">
+    <div style="display:flex; align-items:center; gap:10px; width:100%;">
+      <div class="user-avatar">🌿</div>
+      <div class="user-info">
+        <div class="uname" id="sidebarNombre">Cargando...</div>
+        <div class="urole" id="sidebarRol"></div>
+      </div>
     </div>
-    <span class="user-chevron">▲</span>
+    <button onclick="cerrarSesion()" style="width:100%; background:rgba(255,255,255,0.1); border:0.8px solid rgba(255,255,255,0.2); border-radius:7px; padding:8px; color:#fff; font-family:'Inter',sans-serif; font-size:12px; cursor:pointer;">
+      🚪 Cerrar sesión
+    </button>
   </div>
 </aside>
 
+<!-- MAIN -->
 <div class="main">
   <div class="topbar">
     <div>
@@ -61,11 +203,12 @@
 
     <form id="ventaForm" novalidate onsubmit="return false;">
 
+      <!-- CLIENTE -->
       <div class="section-card">
         <div class="section-title">👤 Información del cliente</div>
         <div class="venta-grid">
           <div class="field col-span-2 autocomplete-wrap">
-            <label><span class="required">Cliente</span></label>
+            <label><span class="required">Cliente *</span></label>
             <input type="text" id="clienteBusqueda" placeholder="Escribe al menos 3 caracteres para buscar..." autocomplete="off">
             <input type="hidden" id="clienteId">
             <div class="autocomplete-dropdown" id="clienteDropdown"></div>
@@ -88,16 +231,19 @@
           </div>
           <div class="field">
             <label>Estado del cliente</label>
-            <span class="badge badge-disponible" id="clienteEstado">● Activo</span>
+            <div style="padding-top:4px;">
+              <span class="badge badge-disponible" id="clienteEstado">● Activo</span>
+            </div>
           </div>
         </div>
       </div>
 
+      <!-- VENTA -->
       <div class="section-card">
         <div class="section-title">🧾 Información de la venta</div>
         <div class="venta-grid">
           <div class="field">
-            <label><span class="required">Fecha de venta</span></label>
+            <label><span class="required">Fecha de venta *</span></label>
             <input type="date" id="fechaVenta">
           </div>
           <div class="field">
@@ -115,11 +261,12 @@
         </div>
       </div>
 
+      <!-- PRODUCTO -->
       <div class="section-card">
         <div class="section-title">📦 Producto</div>
         <div class="venta-grid">
           <div class="field">
-            <label><span class="required">Producto</span></label>
+            <label><span class="required">Producto *</span></label>
             <select id="productoSelect" onchange="onProductoChange()">
               <option value="">Selecciona un producto...</option>
             </select>
@@ -129,7 +276,7 @@
             <input type="text" id="productoCategoria" placeholder="Cacao" readonly>
           </div>
           <div class="field">
-            <label><span class="required">Calidad del cacao</span></label>
+            <label><span class="required">Calidad del cacao *</span></label>
             <select id="calidadSelect">
               <option value="EXTRA">Extra</option>
               <option value="PRIMERA" selected>Primera</option>
@@ -138,7 +285,7 @@
             </select>
           </div>
           <div class="field">
-            <label><span class="required">Precio por kilogramo ($)</span></label>
+            <label><span class="required">Precio por kilogramo ($) *</span></label>
             <input type="text" id="precioKg" placeholder="0.00" oninput="onPrecioChange()">
             <span class="field-error hidden" id="precioError">Ingrese un valor numérico válido.</span>
           </div>
@@ -149,7 +296,7 @@
             </div>
           </div>
           <div class="field">
-            <label><span class="required">Cantidad (kg)</span></label>
+            <label><span class="required">Cantidad (kg) *</span></label>
             <input type="number" id="cantidadKg" placeholder="0" min="0" step="0.01" oninput="onCantidadChange()">
           </div>
           <div class="field col-full">
@@ -161,7 +308,8 @@
         </div>
       </div>
 
-      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+      <!-- BOTONES -->
+      <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:8px;">
         <button type="button" class="btn-cancel" onclick="limpiarFormulario()">Cancelar</button>
         <button type="button" class="btn-primary" id="btnConfirmar" onclick="confirmarVenta()">✓ Confirmar venta</button>
       </div>
@@ -170,12 +318,19 @@
   </div>
 </div>
 
+<!-- SPINNER -->
 <div class="spinner-overlay" id="spinnerOverlay">
   <div class="spinner"></div>
   <div class="spinner-text">Registrando venta...</div>
 </div>
 
 <div class="toast" id="toast"></div>
+<script>
+function cerrarSesion() {
+  localStorage.removeItem('usuario');
+  window.location.href = 'login.html';
+}
+</script>
 <script src="js/ventas.js"></script>
 </body>
 </html>
