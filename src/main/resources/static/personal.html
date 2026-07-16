@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Personal — CacaoGest</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=DM+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/cacaogest.css">
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🫘</div>
+    <div class="logo-text">
+      <div class="brand"><span class="cacao">CACAO</span><span class="gest">GEST</span></div>
+      <div class="cycle">Ciclo 2026</div>
+    </div>
+  </div>
+  <div class="nav-body">
+    <div class="nav-section-label">PRINCIPAL</div>
+    <a class="nav-item" href="dashboard.html"><span class="nav-icon">⊞</span> Dashboard</a>
+    <div class="nav-section-label">GESTIÓN</div>
+    <a class="nav-item" href="usuarios.html"><span class="nav-icon">👥</span> Usuarios y Roles</a>
+    <a class="nav-item active" href="personal.html"><span class="nav-icon">👤</span> Gestión de Personal</a>
+    <a class="nav-item" href="clientes.html"><span class="nav-icon">📋</span> Clientes</a>
+    <a class="nav-item" href="proveedores.html"><span class="nav-icon">🚚</span> Proveedores</a>
+    <div class="nav-section-label">PRODUCCIÓN</div>
+    <a class="nav-item" href="inventario.html"><span class="nav-icon">📦</span> Inventario</a>
+    <a class="nav-item" href="cultivo.html"><span class="nav-icon">🌱</span> Cultivo y Mant.</a>
+    <a class="nav-item" href="cosecha.html"><span class="nav-icon">🫘</span> Cosecha</a>
+    <div class="nav-section-label">COMERCIAL</div>
+    <a class="nav-item" href="ventas.html"><span class="nav-icon">💰</span> Ventas</a>
+    <a class="nav-item" href="facturacion.html"><span class="nav-icon">🧾</span> Facturación y Reportes</a>
+    <a class="nav-item" href="trazabilidad.html"><span class="nav-icon">🔍</span> Trazabilidad</a>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar">🌿</div>
+    <div class="user-info"><div class="uname" id="userName">Administrador</div><div class="urole" id="userRol">admin123</div></div>
+    <span class="user-chevron">▲</span>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Gestión de Personal</div>
+      <div class="page-sub">Registro y administración de empleados</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-outline" onclick="generarReporte()">📄 Reporte</button>
+      <button class="btn-primary" onclick="abrirModalPersonal()">+ Nuevo empleado</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="toolbar">
+      <input class="search-input" type="text" id="searchInput" placeholder="🔍 Buscar por cédula, nombre, apellido o cargo...">
+      <select class="filter-select" id="filtroEstado" onchange="filtrar()">
+        <option value="">Todos los estados</option>
+        <option value="true">Activos</option>
+        <option value="false">Inactivos</option>
+      </select>
+      <button class="btn-outline" onclick="cargarPersonal()">↻ Actualizar</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Cédula</th><th>Nombres</th><th>Apellidos</th><th>Cargo</th><th>Teléfono</th><th>Email</th><th>Fecha Ingreso</th><th>Estado</th><th>Acción</th></tr>
+        </thead>
+        <tbody id="tablaBody">
+          <tr><td colspan="9" class="empty-state">Cargando empleados...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PERSONAL -->
+<div class="modal-overlay" id="modalPersonal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitulo">Nuevo empleado</span>
+      <button class="modal-close" onclick="cerrarModal('modalPersonal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="personalId">
+      <div class="form-grid">
+        <div class="field">
+          <label>Cédula *</label>
+          <input type="text" id="pCedula" placeholder="0000000000" maxlength="10" oninput="validarCedulaEnTiempoReal()">
+          <span class="field-error hidden" id="cedulaError"></span>
+        </div>
+        <div class="field">
+          <label>Cargo *</label>
+          <select id="pCargo">
+            <option value="">Seleccione un cargo...</option>
+            <option value="Administrador">Administrador</option>
+            <option value="Jornalero">Jornalero</option>
+            <option value="Supervisor">Supervisor</option>
+            <option value="Contador">Contador</option>
+            <option value="Vendedor">Vendedor</option>
+            <option value="Chofer">Chofer</option>
+            <option value="Bodeguero">Bodeguero</option>
+            <option value="Técnico de campo">Técnico de campo</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Nombres *</label>
+          <input type="text" id="pNombres" placeholder="Nombres completos" maxlength="100">
+        </div>
+        <div class="field">
+          <label>Apellidos *</label>
+          <input type="text" id="pApellidos" placeholder="Apellidos completos" maxlength="100">
+        </div>
+        <div class="field">
+          <label>Teléfono</label>
+          <input type="text" id="pTelefono" placeholder="0999999999" maxlength="10">
+        </div>
+        <div class="field">
+          <label>Correo electrónico</label>
+          <input type="email" id="pEmail" placeholder="empleado@ejemplo.com" maxlength="100">
+        </div>
+        <div class="field col-full">
+          <label>Dirección *</label>
+          <input type="text" id="pDireccion" placeholder="Dirección del empleado" maxlength="200">
+        </div>
+        <div class="field">
+          <label>Fecha de ingreso</label>
+          <input type="date" id="pFechaIngreso">
+        </div>
+        <div class="field">
+          <label>Estado</label>
+          <div class="estado-toggle">
+            <label class="estado-option selected">
+              <input type="radio" name="pEstado" value="true" checked> Activo
+            </label>
+            <label class="estado-option">
+              <input type="radio" name="pEstado" value="false"> Inactivo
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="cerrarModal('modalPersonal')">Cancelar</button>
+      <button class="btn-primary" onclick="guardarPersonal()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CAMBIAR CONTRASEÑA -->
+<div class="modal-overlay" id="modalPassword">
+  <div class="modal" style="width:420px">
+    <div class="modal-header">
+      <span class="modal-title">Cambiar contraseña</span>
+      <button class="modal-close" onclick="cerrarModal('modalPassword')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pwUserId">
+      <div class="form-grid">
+        <div class="field col-full">
+          <label>Usuario</label>
+          <input type="text" id="pwUsername" readonly style="background:#f0f0f0">
+        </div>
+        <div class="field col-full">
+          <label>Contraseña actual</label>
+          <input type="password" id="pwActual" placeholder="••••••••">
+        </div>
+        <div class="field col-full">
+          <label>Nueva contraseña</label>
+          <input type="password" id="pwNueva" placeholder="Mín. 8 caracteres, letras y números">
+          <span class="pw-hint">Mínimo 8 caracteres, debe contener letras y números</span>
+        </div>
+        <div class="field col-full">
+          <label>Confirmar contraseña</label>
+          <input type="password" id="pwConfirmar" placeholder="Repite la nueva contraseña">
+        </div>
+        <div class="field col-full">
+          <label class="show-pw">
+            <input type="checkbox" onchange="togglePasswordVisibility(this)"> Mostrar contraseñas
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="cerrarModal('modalPassword')">Cancelar</button>
+      <button class="btn-primary" onclick="cambiarContrasena()">Cambiar contraseña</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="js/personal.js"></script>
+</body>
+</html>

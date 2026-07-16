@@ -42,4 +42,20 @@ public class UsuarioService {
     public boolean existeEmail(String email) {
         return usuarioRepository.existsByEmail(email);
     }
+
+    public boolean validarContrasenaActual(Long id, String password) {
+        return usuarioRepository.findById(id)
+                .map(u -> u.getPassword().equals(password))
+                .orElse(false);
+    }
+
+    public boolean cambiarContrasena(Long id, String nuevaPassword) {
+        return usuarioRepository.findById(id)
+                .map(u -> {
+                    u.setPassword(nuevaPassword);
+                    usuarioRepository.save(u);
+                    return true;
+                })
+                .orElse(false);
+    }
 }
