@@ -23,11 +23,17 @@ public class Factura {
     @Column(name = "nombre_cliente", nullable = false, length = 100)
     private String nombreCliente;
 
-    @Column(name = "cedula_cliente", length = 20)
+    @Column(name = "cedula_cliente", length = 10)
     private String cedulaCliente;
+
+    @Column(name = "ruc_cliente", length = 13)
+    private String rucCliente;
 
     @Column(name = "direccion_cliente", length = 200)
     private String direccionCliente;
+
+    @Column(name = "telefono_cliente", length = 20)
+    private String telefonoCliente;
 
     @Column(name = "subtotal", nullable = false)
     private Double subtotal;

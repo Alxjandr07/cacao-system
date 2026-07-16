@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Venta — CacaoGest</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=DM+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/cacaogest.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🫘</div>
+    <div class="logo-text">
+      <div class="brand"><span class="cacao">CACAO</span><span class="gest">GEST</span></div>
+      <div class="cycle">Ciclo 2026</div>
+    </div>
+  </div>
+  <div class="nav-body">
+    <div class="nav-section-label">PRINCIPAL</div>
+    <a class="nav-item" href="dashboard.html"><span class="nav-icon">⊞</span> Dashboard</a>
+    <div class="nav-section-label">GESTIÓN</div>
+    <a class="nav-item" href="usuarios.html"><span class="nav-icon">👥</span> Usuarios y Roles</a>
+    <a class="nav-item" href="personal.html"><span class="nav-icon">👤</span> Gestión de Personal</a>
+    <a class="nav-item" href="clientes.html"><span class="nav-icon">📋</span> Clientes</a>
+    <a class="nav-item" href="proveedores.html"><span class="nav-icon">🚚</span> Proveedores</a>
+    <div class="nav-section-label">PRODUCCIÓN</div>
+    <a class="nav-item" href="inventario.html"><span class="nav-icon">📦</span> Inventario</a>
+    <a class="nav-item" href="cultivo.html"><span class="nav-icon">🌱</span> Cultivo y Mant.</a>
+    <a class="nav-item" href="cosecha.html"><span class="nav-icon">🫘</span> Cosecha</a>
+    <div class="nav-section-label">COMERCIAL</div>
+    <a class="nav-item active" href="ventas.html"><span class="nav-icon">💰</span> Ventas</a>
+    <a class="nav-item" href="facturacion.html"><span class="nav-icon">🧾</span> Facturación y Reportes</a>
+    <a class="nav-item" href="trazabilidad.html"><span class="nav-icon">🔍</span> Trazabilidad</a>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar">🌿</div>
+    <div class="user-info">
+      <div class="uname" id="sidebarNombre">Cargando...</div>
+      <div class="urole" id="sidebarRol"></div>
+    </div>
+    <span class="user-chevron">▲</span>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Registro de Venta</div>
+      <div class="page-sub">Módulo de ventas y comercialización — Ciclo 2026</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="warning-banner hidden" id="stockWarning">
+      <span>⚠</span>
+      <span id="stockWarningMsg">Stock insuficiente.</span>
+    </div>
+
+    <form id="ventaForm" novalidate onsubmit="return false;">
+
+      <div class="section-card">
+        <div class="section-title">👤 Información del cliente</div>
+        <div class="venta-grid">
+          <div class="field col-span-2 autocomplete-wrap">
+            <label><span class="required">Cliente</span></label>
+            <input type="text" id="clienteBusqueda" placeholder="Escribe al menos 3 caracteres para buscar..." autocomplete="off">
+            <input type="hidden" id="clienteId">
+            <div class="autocomplete-dropdown" id="clienteDropdown"></div>
+          </div>
+          <div class="field">
+            <label>Cédula</label>
+            <input type="text" id="clienteCedula" placeholder="0000000000" maxlength="10">
+          </div>
+          <div class="field">
+            <label>RUC</label>
+            <input type="text" id="clienteRuc" placeholder="0000000000001" maxlength="13">
+          </div>
+          <div class="field">
+            <label>Teléfono</label>
+            <input type="text" id="clienteTelefono" placeholder="0999999999" maxlength="10">
+          </div>
+          <div class="field col-span-2">
+            <label>Dirección</label>
+            <input type="text" id="clienteDireccion" placeholder="Dirección del cliente" maxlength="200">
+          </div>
+          <div class="field">
+            <label>Estado del cliente</label>
+            <span class="badge badge-disponible" id="clienteEstado">● Activo</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title">🧾 Información de la venta</div>
+        <div class="venta-grid">
+          <div class="field">
+            <label><span class="required">Fecha de venta</span></label>
+            <input type="date" id="fechaVenta">
+          </div>
+          <div class="field">
+            <label>N° Factura</label>
+            <input type="text" id="numeroFactura" placeholder="Auto-generado" readonly>
+          </div>
+          <div class="field">
+            <label>Estado</label>
+            <input type="text" id="estadoVenta" value="Emitida" readonly>
+          </div>
+          <div class="field">
+            <label>Usuario que registra</label>
+            <input type="text" id="usuarioRegistra" readonly>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-title">📦 Producto</div>
+        <div class="venta-grid">
+          <div class="field">
+            <label><span class="required">Producto</span></label>
+            <select id="productoSelect" onchange="onProductoChange()">
+              <option value="">Selecciona un producto...</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Categoría</label>
+            <input type="text" id="productoCategoria" placeholder="Cacao" readonly>
+          </div>
+          <div class="field">
+            <label><span class="required">Calidad del cacao</span></label>
+            <select id="calidadSelect">
+              <option value="EXTRA">Extra</option>
+              <option value="PRIMERA" selected>Primera</option>
+              <option value="SEGUNDA">Segunda</option>
+              <option value="CACAO_EN_BABA">Cacao en baba</option>
+            </select>
+          </div>
+          <div class="field">
+            <label><span class="required">Precio por kilogramo ($)</span></label>
+            <input type="text" id="precioKg" placeholder="0.00" oninput="onPrecioChange()">
+            <span class="field-error hidden" id="precioError">Ingrese un valor numérico válido.</span>
+          </div>
+          <div class="field">
+            <label>Stock disponible</label>
+            <div class="stock-info" id="stockInfo">
+              <span class="stock-val" id="stockValor">0</span> kg
+            </div>
+          </div>
+          <div class="field">
+            <label><span class="required">Cantidad (kg)</span></label>
+            <input type="number" id="cantidadKg" placeholder="0" min="0" step="0.01" oninput="onCantidadChange()">
+          </div>
+          <div class="field col-full">
+            <div class="total-display">
+              <div class="total-label">Total estimado</div>
+              <div class="total-amount" id="totalEstimado">$ 0.00</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+        <button type="button" class="btn-cancel" onclick="limpiarFormulario()">Cancelar</button>
+        <button type="button" class="btn-primary" id="btnConfirmar" onclick="confirmarVenta()">✓ Confirmar venta</button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<div class="spinner-overlay" id="spinnerOverlay">
+  <div class="spinner"></div>
+  <div class="spinner-text">Registrando venta...</div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="js/ventas.js"></script>
+</body>
+</html>

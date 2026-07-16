@@ -45,8 +45,22 @@ public class FacturaController {
         return ResponseEntity.ok(Map.of("numero", facturaService.generarNumeroFactura()));
     }
 
+    private String validarIdentificacion(String cedula, String ruc) {
+        if (cedula != null && !cedula.isEmpty() && !cedula.matches("\\d{10}")) {
+            return "La cédula debe tener exactamente 10 dígitos.";
+        }
+        if (ruc != null && !ruc.isEmpty() && !ruc.matches("\\d{13}")) {
+            return "El RUC debe tener exactamente 13 dígitos.";
+        }
+        return null;
+    }
+
     @PostMapping
-    public ResponseEntity<Factura> crear(@RequestBody Factura factura) {
+    public ResponseEntity<?> crear(@RequestBody Factura factura) {
+        String error = validarIdentificacion(factura.getCedulaCliente(), factura.getRucCliente());
+        if (error != null) {
+            return ResponseEntity.badRequest().body(Map.of("error", error));
+        }
         if (factura.getNumeroFactura() == null || factura.getNumeroFactura().isEmpty()) {
             factura.setNumeroFactura(facturaService.generarNumeroFactura());
         }
@@ -54,9 +68,13 @@ public class FacturaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Factura> actualizar(@PathVariable Long id, @RequestBody Factura factura) {
+    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody Factura factura) {
         return facturaService.buscarPorId(id)
                 .map(f -> {
+                    String error = validarIdentificacion(factura.getCedulaCliente(), factura.getRucCliente());
+                    if (error != null) {
+                        return ResponseEntity.badRequest().body(Map.of("error", error));
+                    }
                     factura.setId(id);
                     return ResponseEntity.ok(facturaService.guardar(factura));
                 })

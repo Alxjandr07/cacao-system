@@ -69,7 +69,7 @@ function renderTabla(lista) {
     return `<tr>
       <td class="lote">${f.numeroFactura}</td>
       <td class="name">${f.nombreCliente}</td>
-      <td class="mono">${f.cedulaCliente || '—'}</td>
+      <td class="mono">${f.cedulaCliente || '—'}${f.rucCliente ? '<br><small>RUC: ' + f.rucCliente + '</small>' : ''}</td>
       <td>${formatFecha(f.fechaEmision)}</td>
       <td class="mono">$${parseFloat(f.subtotal).toFixed(2)}</td>
       <td class="mono">$${parseFloat(f.iva).toFixed(2)}</td>
@@ -99,7 +99,7 @@ async function abrirModalFactura() {
   document.getElementById('modalFacturaTitulo').textContent = 'Nueva factura';
   document.getElementById('facturaId').value = '';
   document.getElementById('fEstado').value = 'EMITIDA';
-  ['fNombreCliente','fCedulaCliente','fDireccion','fObservaciones'].forEach(id => document.getElementById(id).value = '');
+  ['fNombreCliente','fCedulaCliente','fRucCliente','fDireccion','fObservaciones'].forEach(id => document.getElementById(id).value = '');
   ['fSubtotal','fIva','fTotal'].forEach(id => document.getElementById(id).value = '');
 
   try {
@@ -121,6 +121,7 @@ function abrirEditar(id) {
   document.getElementById('fEstado').value        = f.estado;
   document.getElementById('fNombreCliente').value = f.nombreCliente;
   document.getElementById('fCedulaCliente').value = f.cedulaCliente || '';
+  document.getElementById('fRucCliente').value    = f.rucCliente || '';
   document.getElementById('fDireccion').value     = f.direccionCliente || '';
   document.getElementById('fSubtotal').value      = f.subtotal;
   document.getElementById('fIva').value           = f.iva;
@@ -134,12 +135,18 @@ async function guardarFactura() {
   const subtotal = document.getElementById('fSubtotal').value;
   if (!nombre || !subtotal) { showToast('Completa los campos obligatorios', 'error'); return; }
 
+  const cedulaV = document.getElementById('fCedulaCliente').value.trim();
+  const rucV    = document.getElementById('fRucCliente').value.trim();
+  if (cedulaV && !/^\d{10}$/.test(cedulaV)) { showToast('La cédula debe tener exactamente 10 dígitos.', 'error'); return; }
+  if (rucV    && !/^\d{13}$/.test(rucV))    { showToast('El RUC debe tener exactamente 13 dígitos.', 'error'); return; }
+
   const id   = document.getElementById('facturaId').value;
   const body = {
     numeroFactura:    document.getElementById('fNumero').value,
     estado:           document.getElementById('fEstado').value,
     nombreCliente:    nombre,
-    cedulaCliente:    document.getElementById('fCedulaCliente').value.trim(),
+    cedulaCliente:    cedulaV,
+    rucCliente:       rucV,
     direccionCliente: document.getElementById('fDireccion').value.trim(),
     subtotal:         parseFloat(subtotal),
     iva:              parseFloat(document.getElementById('fIva').value),

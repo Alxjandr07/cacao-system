@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clientes — CacaoGest</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=DM+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/cacaogest.css">
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🫘</div>
+    <div class="logo-text">
+      <div class="brand"><span class="cacao">CACAO</span><span class="gest">GEST</span></div>
+      <div class="cycle">Ciclo 2026</div>
+    </div>
+  </div>
+  <div class="nav-body">
+    <div class="nav-section-label">PRINCIPAL</div>
+    <a class="nav-item" href="dashboard.html"><span class="nav-icon">⊞</span> Dashboard</a>
+    <div class="nav-section-label">GESTIÓN</div>
+    <a class="nav-item" href="usuarios.html"><span class="nav-icon">👥</span> Usuarios y Roles</a>
+    <a class="nav-item" href="personal.html"><span class="nav-icon">👤</span> Gestión de Personal</a>
+    <a class="nav-item active" href="clientes.html"><span class="nav-icon">📋</span> Clientes</a>
+    <a class="nav-item" href="proveedores.html"><span class="nav-icon">🚚</span> Proveedores</a>
+    <div class="nav-section-label">PRODUCCIÓN</div>
+    <a class="nav-item" href="inventario.html"><span class="nav-icon">📦</span> Inventario</a>
+    <a class="nav-item" href="cultivo.html"><span class="nav-icon">🌱</span> Cultivo y Mant.</a>
+    <a class="nav-item" href="cosecha.html"><span class="nav-icon">🫘</span> Cosecha</a>
+    <div class="nav-section-label">COMERCIAL</div>
+    <a class="nav-item" href="ventas.html"><span class="nav-icon">💰</span> Ventas</a>
+    <a class="nav-item" href="facturacion.html"><span class="nav-icon">🧾</span> Facturación y Reportes</a>
+    <a class="nav-item" href="trazabilidad.html"><span class="nav-icon">🔍</span> Trazabilidad</a>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar">🌿</div>
+    <div class="user-info"><div class="uname" id="userName">Administrador</div><div class="urole" id="userRol">admin123</div></div>
+    <span class="user-chevron">▲</span>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Clientes</div>
+      <div class="page-sub">Gestión de clientes y compradores</div>
+    </div>
+    <button class="btn-primary" onclick="abrirModalCliente()">+ Nuevo cliente</button>
+  </div>
+  <div class="content">
+    <div class="toolbar">
+      <input class="search-input" type="text" id="searchInput" placeholder="🔍 Buscar cliente...">
+      <button class="btn-outline" onclick="cargarClientes()">↻ Actualizar</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Nombre</th><th>Cédula</th><th>RUC</th><th>Teléfono</th><th>Dirección</th><th>Email</th><th>Estado</th><th>Acción</th></tr>
+        </thead>
+        <tbody id="tablaBody">
+          <tr><td colspan="8" class="empty-state">Cargando clientes...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CLIENTE -->
+<div class="modal-overlay" id="modalCliente">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitulo">Nuevo cliente</span>
+      <button class="modal-close" onclick="cerrarModal('modalCliente')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="clienteId">
+      <div class="form-grid">
+        <div class="field col-full">
+          <label>Nombre *</label>
+          <input type="text" id="cNombre" placeholder="Nombre completo o razón social" maxlength="150">
+        </div>
+        <div class="field">
+          <label>Cédula</label>
+          <input type="text" id="cCedula" placeholder="0000000000" maxlength="10">
+        </div>
+        <div class="field">
+          <label>RUC</label>
+          <input type="text" id="cRuc" placeholder="0000000000001" maxlength="13">
+        </div>
+        <div class="field">
+          <label>Teléfono</label>
+          <input type="text" id="cTelefono" placeholder="0999999999" maxlength="20">
+        </div>
+        <div class="field col-full">
+          <label>Dirección</label>
+          <input type="text" id="cDireccion" placeholder="Dirección del cliente" maxlength="200">
+        </div>
+        <div class="field col-full">
+          <label>Email</label>
+          <input type="email" id="cEmail" placeholder="cliente@ejemplo.com" maxlength="100">
+        </div>
+        <div class="field col-full">
+          <label>Estado</label>
+          <div class="estado-toggle">
+            <label class="estado-option selected">
+              <input type="radio" name="cEstado" value="true" checked> Activo
+            </label>
+            <label class="estado-option">
+              <input type="radio" name="cEstado" value="false"> Inactivo
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="cerrarModal('modalCliente')">Cancelar</button>
+      <button class="btn-primary" onclick="guardarCliente()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="js/clientes.js"></script>
+</body>
+</html>

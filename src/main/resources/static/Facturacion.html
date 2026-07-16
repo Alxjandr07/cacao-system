@@ -24,6 +24,7 @@
     <div class="nav-section-label">GESTIÓN</div>
     <a class="nav-item" href="usuarios.html"><span class="nav-icon">👥</span> Usuarios y Roles</a>
     <a class="nav-item" href="personal.html"><span class="nav-icon">👤</span> Gestión de Personal</a>
+    <a class="nav-item" href="clientes.html"><span class="nav-icon">📋</span> Clientes</a>
     <a class="nav-item" href="proveedores.html"><span class="nav-icon">🚚</span> Proveedores</a>
     <div class="nav-section-label">PRODUCCIÓN</div>
     <a class="nav-item" href="inventario.html"><span class="nav-icon">📦</span> Inventario</a>
@@ -96,7 +97,7 @@
           <tr>
             <th>N° Factura</th>
             <th>Cliente</th>
-            <th>Cédula</th>
+            <th>Identificación</th>
             <th>Fecha emisión</th>
             <th>Subtotal</th>
             <th>IVA</th>
@@ -141,7 +142,11 @@
         </div>
         <div class="field">
           <label>Cédula del cliente</label>
-          <input type="text" id="fCedulaCliente" placeholder="0000000000">
+          <input type="text" id="fCedulaCliente" placeholder="0000000000" maxlength="10">
+        </div>
+        <div class="field">
+          <label>RUC del cliente</label>
+          <input type="text" id="fRucCliente" placeholder="0000000000001" maxlength="13">
         </div>
         <div class="field">
           <label>Dirección</label>
