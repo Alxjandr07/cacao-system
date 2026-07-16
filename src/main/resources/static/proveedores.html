@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proveedores — CacaoGest</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=DM+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/cacaogest.css">
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🫘</div>
+    <div class="logo-text">
+      <div class="brand"><span class="cacao">CACAO</span><span class="gest">GEST</span></div>
+      <div class="cycle">Ciclo 2026</div>
+    </div>
+  </div>
+  <div class="nav-body">
+    <div class="nav-section-label">PRINCIPAL</div>
+    <a class="nav-item" href="dashboard.html"><span class="nav-icon">⊞</span> Dashboard</a>
+    <div class="nav-section-label">GESTIÓN</div>
+    <a class="nav-item" href="usuarios.html"><span class="nav-icon">👥</span> Usuarios y Roles</a>
+    <a class="nav-item" href="personal.html"><span class="nav-icon">👤</span> Gestión de Personal</a>
+    <a class="nav-item" href="clientes.html"><span class="nav-icon">📋</span> Clientes</a>
+    <a class="nav-item active" href="proveedores.html"><span class="nav-icon">🚚</span> Proveedores</a>
+    <div class="nav-section-label">PRODUCCIÓN</div>
+    <a class="nav-item" href="inventario.html"><span class="nav-icon">📦</span> Inventario</a>
+    <a class="nav-item" href="cultivo.html"><span class="nav-icon">🌱</span> Cultivo y Mant.</a>
+    <a class="nav-item" href="cosecha.html"><span class="nav-icon">🫘</span> Cosecha</a>
+    <div class="nav-section-label">COMERCIAL</div>
+    <a class="nav-item" href="ventas.html"><span class="nav-icon">💰</span> Ventas</a>
+    <a class="nav-item" href="facturacion.html"><span class="nav-icon">🧾</span> Facturación y Reportes</a>
+    <a class="nav-item" href="trazabilidad.html"><span class="nav-icon">🔍</span> Trazabilidad</a>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar">🌿</div>
+    <div class="user-info"><div class="uname" id="userName">Administrador</div><div class="urole" id="userRol">admin123</div></div>
+    <span class="user-chevron">▲</span>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Proveedores</div>
+      <div class="page-sub">Registro y administración de proveedores de cacao e insumos</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-outline" onclick="generarReporte()">📄 Reporte</button>
+      <button class="btn-primary" onclick="abrirModalProveedor()">+ Nuevo proveedor</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="toolbar">
+      <input class="search-input" type="text" id="searchInput" placeholder="🔍 Buscar por RUC, nombre, ciudad...">
+      <select class="filter-select" id="filtroEstado" onchange="filtrar()">
+        <option value="">Todos los estados</option>
+        <option value="true">Activos</option>
+        <option value="false">Inactivos</option>
+      </select>
+      <button class="btn-outline" onclick="cargarProveedores()">↻ Actualizar</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>RUC</th><th>Razón Social</th><th>Representante</th><th>Teléfono</th><th>Ciudad</th><th>Tipo</th><th>Estado</th><th>Acción</th></tr>
+        </thead>
+        <tbody id="tablaBody">
+          <tr><td colspan="8" class="empty-state">Cargando proveedores...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PROVEEDOR -->
+<div class="modal-overlay" id="modalProveedor">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitulo">Nuevo proveedor</span>
+      <button class="modal-close" onclick="cerrarModal('modalProveedor')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="proveedorId">
+      <div class="form-grid">
+        <div class="field">
+          <label>RUC *</label>
+          <input type="text" id="pRuc" placeholder="0000000000001" maxlength="13" oninput="validarRucEnTiempoReal()">
+          <span class="field-error hidden" id="rucError"></span>
+        </div>
+        <div class="field">
+          <label>Tipo de proveedor *</label>
+          <select id="pTipo">
+            <option value="">Seleccione un tipo...</option>
+            <option value="PERSONA_NATURAL">Persona Natural</option>
+            <option value="SOCIEDAD">Sociedad</option>
+            <option value="COOPERATIVA">Cooperativa</option>
+            <option value="OTRO">Otro</option>
+          </select>
+        </div>
+        <div class="field col-full">
+          <label>Nombre o Razón Social *</label>
+          <input type="text" id="pNombre" placeholder="Nombre o razón social" maxlength="200">
+        </div>
+        <div class="field">
+          <label>Nombre del representante</label>
+          <input type="text" id="pRepresentante" placeholder="Nombre del representante" maxlength="100">
+        </div>
+        <div class="field">
+          <label>Teléfono</label>
+          <input type="text" id="pTelefono" placeholder="0999999999" maxlength="10">
+        </div>
+        <div class="field">
+          <label>Correo electrónico</label>
+          <input type="email" id="pEmail" placeholder="proveedor@ejemplo.com" maxlength="100">
+        </div>
+        <div class="field col-full">
+          <label>Dirección *</label>
+          <input type="text" id="pDireccion" placeholder="Dirección del proveedor" maxlength="200">
+        </div>
+        <div class="field">
+          <label>Ciudad *</label>
+          <input type="text" id="pCiudad" placeholder="Ciudad" maxlength="100">
+        </div>
+        <div class="field">
+          <label>Estado</label>
+          <div class="estado-toggle">
+            <label class="estado-option selected">
+              <input type="radio" name="pEstado" value="true" checked> Activo
+            </label>
+            <label class="estado-option">
+              <input type="radio" name="pEstado" value="false"> Inactivo
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="cerrarModal('modalProveedor')">Cancelar</button>
+      <button class="btn-primary" onclick="guardarProveedor()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="js/proveedores.js"></script>
+</body>
+</html>
