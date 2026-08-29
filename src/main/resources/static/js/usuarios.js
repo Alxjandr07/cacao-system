@@ -1,18 +1,30 @@
 /* =====================================================
    CacaoGest — usuarios.js
    ===================================================== */
-const API_USUARIOS = 'http://localhost:8080/api/usuarios';
-const API_ROLES    = 'http://localhost:8080/api/roles';
-const API_PERMISOS = 'http://localhost:8080/api/permisos';
+const API_USUARIOS = 'http://localhost:8081/api/usuarios';
+const API_ROLES    = 'http://localhost:8081/api/roles';
+const API_PERMISOS = 'http://localhost:8081/api/permisos';
 
 let usuarios = [];
 let roles    = [];
 let permisos = [];
 
+const usuarioActual  = JSON.parse(localStorage.getItem('usuario') || '{}');
+const ES_ADMIN       = usuarioActual.rol === 'ADMIN';
+const esAdminOperador = (u) => u.rol && u.rol.nombre === 'ADMIN';
+
 // ── UTILS ──────────────────────────────────────────
-function togglePassword() {
+function togglePassword(ev) {
   const pw = document.getElementById('uPassword');
-  pw.type = pw.type === 'password' ? 'text' : 'password';
+  const cb = document.getElementById('uShowPw');
+  if (ev && ev.target && ev.target === cb) {
+    // El clic vino del checkbox: el navegador ya alternó 'checked'.
+    pw.type = cb.checked ? 'text' : 'password';
+  } else {
+    // El clic vino del texto: hay que invertir el checkbox manualmente.
+    cb.checked = !cb.checked;
+    pw.type = cb.checked ? 'text' : 'password';
+  }
 }
 
 function getEstadoValue() {
@@ -127,6 +139,7 @@ function renderizarRoles() {
     body.innerHTML = '<tr><td colspan="5" class="empty-state">No hay roles registrados</td></tr>';
     return;
   }
+  const puedeGestionarRoles = window.tienePermiso && tienePermiso('GESTIONAR_ROLES');
   body.innerHTML = roles.map(r => `
     <tr>
       <td class="name">${r.nombre}</td>
@@ -136,8 +149,10 @@ function renderizarRoles() {
       ).join(' ') || '<span style="color:var(--border-color);font-size:11px">—</span>'}</td>
       <td class="mono">${r.usuarios ? r.usuarios.length : 0}</td>
       <td>
-        <button class="action-btn" onclick="editarRol(${r.id})">✎ Editar</button>
-        <button class="action-btn danger" onclick="eliminarRol(${r.id})">✕ Eliminar</button>
+        ${puedeGestionarRoles
+          ? `<button class="action-btn" onclick="editarRol(${r.id})">✎ Editar</button>
+             <button class="action-btn danger" onclick="eliminarRol(${r.id})">✕ Eliminar</button>`
+          : '<span style="color:var(--border-color);font-size:11px">Solo lectura</span>'}
       </td>
     </tr>
   `).join('');
@@ -145,8 +160,9 @@ function renderizarRoles() {
 
 function poblarSelectRoles() {
   const sel = document.getElementById('uRolId');
+  const disponibles = roles.filter(r => ES_ADMIN || r.nombre !== 'ADMIN');
   sel.innerHTML = '<option value="">Selecciona rol...</option>' +
-    roles.map(r => `<option value="${r.id}">${r.nombre}</option>`).join('');
+    disponibles.map(r => `<option value="${r.id}">${r.nombre}</option>`).join('');
 }
 
 function abrirModalRol() {
@@ -237,8 +253,10 @@ function renderizarUsuarios() {
       <td>${u.activo ? '<span class="badge badge-completada">✓ Activo</span>' : '<span class="badge badge-cancelada">✕ Inactivo</span>'}</td>
       <td class="mono">${formatFecha(u.createdAt)}</td>
       <td>
-        <button class="action-btn" onclick="editarUsuario(${u.id})">✎ Editar</button>
-        <button class="action-btn danger" onclick="eliminarUsuario(${u.id})">✕ Eliminar</button>
+        ${(!esAdminOperador(u) || ES_ADMIN)
+          ? `<button class="action-btn" onclick="editarUsuario(${u.id})">✎ Editar</button>
+             <button class="action-btn danger" onclick="eliminarUsuario(${u.id})">✕ Eliminar</button>`
+          : '<span class="badge badge-insumo">🔒 Administrador</span>'}
       </td>
     </tr>
   `).join('');
@@ -299,6 +317,19 @@ async function guardarUsuario() {
   if (!id && (!password || password.length < 6)) errores.push('La contraseña debe tener al menos 6 caracteres.');
   if (!rolId) errores.push('Selecciona un rol.');
   if (errores.length) { errores.forEach(e => showToast(e, 'error')); return; }
+  const editado = usuarios.find(uu => uu.id === Number(id));
+  const editarEsAdmin = editado && esAdminOperador(editado);
+  if (!ES_ADMIN) {
+    const rolSel = roles.find(r => r.id === Number(rolId));
+    if (rolSel && rolSel.nombre === 'ADMIN') {
+      showToast('No tienes permiso para asignar el rol Administrador', 'error');
+      return;
+    }
+    if (editarEsAdmin) {
+      showToast('No tienes permiso para modificar administradores.', 'error');
+      return;
+    }
+  }
   try {
     const body = { username, nombres, apellidos, email, activo, rol: { id: parseInt(rolId) } };
     if (password) body.password = password;

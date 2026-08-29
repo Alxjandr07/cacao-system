@@ -124,6 +124,7 @@ public class VentaController {
                 mov.setProducto(producto);
                 mov.setTipo(TipoMovimiento.SALIDA);
                 mov.setCantidad(cantidadKg);
+                mov.setMotivoTipo(MotivoMovimiento.VENTA);
                 mov.setMotivo("Venta a: " + clienteNombre);
                 movimientoRepository.save(mov);
             }

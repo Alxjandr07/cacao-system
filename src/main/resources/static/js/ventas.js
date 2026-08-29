@@ -1,7 +1,13 @@
 /* =====================================================
-   CacaoGest — ventas.js
+   CacaoGest — ventas.js (formulario de registro multi-producto)
    ===================================================== */
-const API = 'http://localhost:8080/api/ventas';
+const API_VENTAS = 'http://localhost:8081/api/ventas';
+const API_FACT   = 'http://localhost:8081/api/facturacion';
+const API_CLIENTES = 'http://localhost:8081/api/clientes';
+
+let clientes  = [];
+let productos = [];
+let lineas    = [];
 
 // ── USUARIO SIDEBAR ─────────────────────────────────
 const u = JSON.parse(localStorage.getItem('usuario') || '{}');
@@ -9,346 +15,345 @@ if (u.nombres) document.getElementById('sidebarNombre').textContent = u.nombres 
 if (u.rol)     document.getElementById('sidebarRol').textContent = u.rol;
 if (u.username) document.getElementById('usuarioRegistra').value = u.username;
 
-// ── STATE ───────────────────────────────────────────
-let productos = [];
-let stockSeleccionado = 0;
+function cerrarSesion() {
+  localStorage.removeItem('usuario');
+  window.location.href = 'login.html';
+}
 
-// ── INIT ────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('fechaVenta').value = new Date().toISOString().slice(0, 10);
-  cargarNumeroFactura();
-  cargarProductos();
-});
-
-// ── TOAST ────────────────────────────────────────────
-function showToast(msg, type) {
+// ── UTILS ──────────────────────────────────────────
+function showToast(msg, type = 'success') {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.className = `toast ${type || 'success'} show`;
+  t.className = `toast ${type} show`;
   setTimeout(() => t.className = 'toast', 3500);
 }
 
-// ── AUTOCOMPLETE CLIENTE ─────────────────────────────
-const clienteInput = document.getElementById('clienteBusqueda');
-const clienteDropdown = document.getElementById('clienteDropdown');
-let debounceTimer;
+function fmtMoney(v) {
+  return '$' + (parseFloat(v) || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
 
-clienteInput.addEventListener('input', () => {
-  clearTimeout(debounceTimer);
-  const q = clienteInput.value.trim();
-  if (!q) {
-    clienteDropdown.classList.remove('open');
-    return;
-  }
-  debounceTimer = setTimeout(() => buscarClientes(q), 300);
-});
-
-clienteInput.addEventListener('blur', () => {
-  setTimeout(() => clienteDropdown.classList.remove('open'), 200);
-});
-
-clienteInput.addEventListener('focus', () => {
-  const q = clienteInput.value.trim();
-  if (q.length >= 3) buscarClientes(q);
-});
-
-async function buscarClientes(q) {
+// ── CARGA / KPIs ────────────────────────────────────
+async function cargarKPIs() {
   try {
-    const res = await fetch(`${API}/clientes?q=${encodeURIComponent(q)}`);
-    const data = await res.json();
-    renderClientes(data);
-  } catch {
-    clienteDropdown.classList.remove('open');
-  }
-}
-
-function renderClientes(lista) {
-  if (!lista.length) {
-    clienteDropdown.classList.remove('open');
-    return;
-  }
-  clienteDropdown.innerHTML = lista.map(c => `
-    <div class="autocomplete-item" data-id="${c.id}"
-         data-nombre="${c.nombre}" data-cedula="${c.cedula}" data-ruc="${c.ruc}"
-         data-telefono="${c.telefono}" data-direccion="${c.direccion}"
-         data-activo="${c.activo}" onclick="seleccionarCliente(this)">
-      <div class="cli-name">${c.nombre}</div>
-      <div class="cli-meta">
-        <span>${c.cedula ? 'C.C: ' + c.cedula : ''}${c.cedula && c.ruc ? ' | ' : ''}${c.ruc ? 'RUC: ' + c.ruc : ''}</span>
-        <span>${c.direccion || ''}</span>
-      </div>
-    </div>
-  `).join('');
-  clienteDropdown.classList.add('open');
-}
-
-function seleccionarCliente(el) {
-  document.getElementById('clienteId').value = el.dataset.id;
-  document.getElementById('clienteBusqueda').value = el.dataset.nombre;
-  document.getElementById('clienteCedula').value = el.dataset.cedula;
-  document.getElementById('clienteRuc').value = el.dataset.ruc;
-  document.getElementById('clienteTelefono').value = el.dataset.telefono;
-  document.getElementById('clienteDireccion').value = el.dataset.direccion;
-  const estado = document.getElementById('clienteEstado');
-  if (el.dataset.activo === 'true') {
-    estado.className = 'badge badge-disponible';
-    estado.textContent = '● Activo';
-  } else {
-    estado.className = 'badge badge-critico';
-    estado.textContent = '● Inactivo';
-  }
-  clienteDropdown.classList.remove('open');
-}
-
-// ── NÚMERO DE FACTURA ────────────────────────────────
-async function cargarNumeroFactura() {
-  try {
-    const res = await fetch(`${API}/generar-numero`);
-    const data = await res.json();
-    document.getElementById('numeroFactura').value = data.numero;
+    const res = await fetch(API_FACT);
+    if (!res.ok) throw new Error();
+    const facturas = await res.json();
+    document.getElementById('kpiTotal').textContent = facturas.length;
+    document.getElementById('kpiEmitidas').textContent = facturas.filter(f => f.estado === 'EMITIDA').length;
+    document.getElementById('kpiPagadas').textContent = facturas.filter(f => f.estado === 'PAGADA').length;
+    document.getElementById('kpiAnuladas').textContent = facturas.filter(f => f.estado === 'ANULADA').length;
   } catch {}
 }
 
-// ── PRODUCTOS ────────────────────────────────────────
+async function cargarClientes() {
+  try {
+    const res = await fetch(API_CLIENTES);
+    if (!res.ok) throw new Error();
+    clientes = await res.json();
+    const sel = document.getElementById('fCliente');
+    sel.innerHTML = '<option value="">— Seleccionar cliente —</option>' +
+      clientes.filter(c => c.activo !== false)
+        .map(c => `<option value="${c.id}">${c.nombre}${c.cedula ? ' · ' + c.cedula : ''}${c.ruc ? ' · ' + c.ruc : ''}</option>`).join('');
+  } catch {}
+}
+
 async function cargarProductos() {
   try {
-    const res = await fetch(`${API}/productos`);
+    const res = await fetch(`${API_VENTAS}/productos`);
+    if (!res.ok) throw new Error();
     productos = await res.json();
-    const select = document.getElementById('productoSelect');
-    select.innerHTML = '<option value="">Selecciona un producto...</option>' +
-      productos.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('');
+    if (lineas.length) renderLineas();
   } catch {}
 }
 
-function onProductoChange() {
-  const id = parseInt(document.getElementById('productoSelect').value);
-  if (!id) {
-    stockSeleccionado = 0;
-    document.getElementById('stockValor').textContent = '0';
-    document.getElementById('productoCategoria').value = '';
-    ocultarWarningStock();
-    recalcularTotal();
+function init() {
+  document.getElementById('fechaVenta').value = new Date().toISOString().slice(0, 10);
+  generarNumero();
+  cargarKPIs();
+  cargarClientes();
+  cargarProductos();
+  agregarLinea();
+}
+
+async function generarNumero() {
+  try {
+    const res  = await fetch(`${API_VENTAS}/generar-numero`);
+    const data = await res.json();
+    document.getElementById('numeroFactura').value = data.numero;
+  } catch {
+    document.getElementById('numeroFactura').value = '';
+  }
+}
+
+// ── CLIENTE ─────────────────────────────────────────
+function onClienteSeleccionado() {
+  const id = document.getElementById('fCliente').value;
+  const c  = clientes.find(x => x.id === Number(id));
+  document.getElementById('fCedula').value   = (c && c.cedula) || '';
+  document.getElementById('fRuc').value      = (c && c.ruc) || '';
+  document.getElementById('fTelefono').value = (c && c.telefono) || '';
+  document.getElementById('fDireccion').value = (c && c.direccion) || '';
+  actualizarRecibo();
+}
+
+// ── LINEAS DE VENTA ────────────────────────────────
+function opcionesProductos(lid, selectedId) {
+  const usados = lineas
+    .filter(l => l.id !== lid && l.productoId)
+    .map(l => l.productoId);
+  return productos.map(p => {
+    const yaUsado = usados.includes(p.id);
+    return `<option value="${p.id}" ${selectedId === p.id ? 'selected' : ''} ${yaUsado ? 'disabled' : ''} data-nombre="${(p.nombre||'').replace(/"/g,'&quot;')}" data-stock="${p.stockActual}">${p.nombre} (${p.unidadMedida}) ${yaUsado ? '· ya agregado' : ''} — disp ${parseFloat(p.stockActual)}</option>`;
+  }).join('');
+}
+
+function agregarLinea() {
+  const id = Date.now() + Math.random();
+  lineas.push({ id, productoId: '', nombre: '', calidad: 'PRIMERA', cantidad: 1, precio: 0, subtotal: 0, stock: 0 });
+  renderLineas();
+}
+
+function eliminarLinea(lid) {
+  lineas = lineas.filter(l => l.id !== lid);
+  renderLineas();
+}
+
+function onLineaProducto(lid, sel) {
+  const linea = lineas.find(l => l.id === lid);
+  const prod  = productos.find(p => p.id === Number(sel.value));
+  const yaUsado = linea && prod && lineas.some(l => l.id !== lid && l.productoId === prod.id);
+  if (yaUsado) {
+    sel.value = linea.productoId ? String(linea.productoId) : '';
+    sel.classList.add('input-error');
+    setTimeout(() => sel.classList.remove('input-error'), 900);
     return;
   }
-  const p = productos.find(x => x.id === id);
-  if (p) {
-    stockSeleccionado = parseFloat(p.stockActual) || 0;
-    document.getElementById('stockValor').textContent = stockSeleccionado;
-    document.getElementById('productoCategoria').value = p.unidadMedida || 'Cacao';
-    validarStock();
-    recalcularTotal();
+  if (linea && prod) {
+    linea.productoId = prod.id;
+    linea.nombre = prod.nombre;
+    linea.stock = parseFloat(prod.stockActual) || 0;
+    linea.unidad = prod.unidadMedida || 'kg';
+    const row = document.getElementById('stock-' + lid);
+    if (row) row.textContent = linea.stock + ' ' + linea.unidad;
+    marcaStock(lid);
   }
 }
 
-// ── VALIDACIÓN PRECIO ────────────────────────────────
-function onPrecioChange() {
-  const input = document.getElementById('precioKg');
-  const error = document.getElementById('precioError');
-  const val = input.value.trim();
-  const regex = /^\d+(\.\d{1,2})?$/;
-  if (val && !regex.test(val)) {
-    input.classList.add('input-error');
-    error.classList.remove('hidden');
-    return;
+function onLineaCalidad(lid, val) {
+  const linea = lineas.find(l => l.id === lid);
+  if (linea) linea.calidad = val;
+}
+
+function onLineaCantidad(lid, val) {
+  const linea = lineas.find(l => l.id === lid);
+  if (linea) { linea.cantidad = parseFloat(val) || 0; recalcularLinea(lid); marcaStock(lid); }
+}
+
+function onLineaPrecio(lid, val) {
+  const linea = lineas.find(l => l.id === lid);
+  if (linea) { linea.precio = parseFloat(val) || 0; recalcularLinea(lid); }
+}
+
+function marcaStock(lid) {
+  const linea = lineas.find(l => l.id === lid);
+  const qty = document.getElementById('qty-' + lid);
+  const msg = document.getElementById('stockMsg-' + lid);
+  if (!linea || !qty) return;
+  const excede = linea.productoId && linea.cantidad > linea.stock;
+  qty.classList.toggle('input-error', excede);
+  if (msg) {
+    const disp = linea.unidad || 'kg';
+    msg.textContent = `Stock insuf.: ${linea.stock} ${disp} disp.`;
+    msg.style.display = excede ? 'block' : 'none';
   }
-  input.classList.remove('input-error');
-  error.classList.add('hidden');
-  recalcularTotal();
 }
 
-// ── VALIDACIÓN STOCK ────────────────────────────────
-function onCantidadChange() {
-  validarStock();
-  recalcularTotal();
+function recalcularLinea(lid) {
+  const linea = lineas.find(l => l.id === lid);
+  if (linea) {
+    linea.subtotal = linea.cantidad * linea.precio;
+    const row = document.getElementById('sub-' + lid);
+    if (row) row.textContent = fmtMoney(linea.subtotal);
+  }
+  recalcularTotales();
 }
 
-function validarStock() {
-  const cantidad = parseFloat(document.getElementById('cantidadKg').value) || 0;
-  const stockVal = document.getElementById('stockValor');
-  const warning = document.getElementById('stockWarning');
-  const warningMsg = document.getElementById('stockWarningMsg');
-  const btn = document.getElementById('btnConfirmar');
-  const cantInput = document.getElementById('cantidadKg');
-
-  if (cantidad > stockSeleccionado && stockSeleccionado > 0) {
-    warning.classList.remove('hidden');
-    warningMsg.textContent =
-      `Stock insuficiente. Disponible: ${stockSeleccionado} kg — No es posible vender más stock del disponible. Ajusta la cantidad antes de confirmar.`;
-    cantInput.classList.add('input-error');
-    btn.disabled = true;
-    btn.style.opacity = '0.5';
-    btn.style.cursor = 'not-allowed';
+function renderLineas() {
+  const tbody = document.getElementById('lineasBody');
+  if (!lineas.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Haz clic en "+ Agregar producto" para iniciar la venta</td></tr>';
   } else {
-    ocultarWarningStock();
+    tbody.innerHTML = lineas.map(l => `
+      <tr>
+        <td>
+          <select class="linea-prod" onchange="onLineaProducto(${l.id}, this)">
+            <option value="">Seleccionar producto</option>
+            ${opcionesProductos(l.id, l.productoId)}
+          </select>
+        </td>
+        <td>
+          <select class="linea-prod" onchange="onLineaCalidad(${l.id}, this.value)">
+            <option value="EXTRA">Extra</option>
+            <option value="PRIMERA" ${l.calidad === 'PRIMERA' ? 'selected' : ''}>Primera</option>
+            <option value="SEGUNDA">Segunda</option>
+            <option value="CACAO_EN_BABA">En baba</option>
+          </select>
+        </td>
+        <td>
+          <input type="number" id="qty-${l.id}" class="linea-num ${l.productoId && l.cantidad > l.stock ? 'input-error' : ''}" min="0.01" step="0.01" value="${l.cantidad}" oninput="onLineaCantidad(${l.id}, this.value)">
+          <div id="stockMsg-${l.id}" class="linea-err" style="display:${l.productoId && l.cantidad > l.stock ? 'block' : 'none'}">Stock insuf.: ${l.stock} disp.</div>
+        </td>
+        <td><input type="number" class="linea-num" min="0" step="0.01" placeholder="Precio / kg" value="${l.precio || ''}" oninput="onLineaPrecio(${l.id}, this.value)"></td>
+        <td class="mono" id="sub-${l.id}">${fmtMoney(l.subtotal)}</td>
+        <td class="mono" id="stock-${l.id}">${l.stock || '—'}</td>
+        <td><button class="action-btn danger" onclick="eliminarLinea(${l.id})">✕</button></td>
+      </tr>`).join('');
   }
+  recalcularTotales();
 }
 
-function ocultarWarningStock() {
-  const warning = document.getElementById('stockWarning');
-  warning.classList.add('hidden');
-  document.getElementById('cantidadKg').classList.remove('input-error');
-  const btn = document.getElementById('btnConfirmar');
-  btn.disabled = false;
-  btn.style.opacity = '1';
-  btn.style.cursor = 'pointer';
+function recalcularTotales() {
+  const subtotal = lineas.reduce((s, l) => s + (l.subtotal || 0), 0);
+  const iva      = subtotal * 0.15;
+  const total    = subtotal + iva;
+  document.getElementById('fSubtotal').textContent = fmtMoney(subtotal);
+  document.getElementById('fIva').textContent      = fmtMoney(iva);
+  document.getElementById('fTotal').textContent    = fmtMoney(total);
+  actualizarRecibo();
 }
 
-// ── CÁLCULO TOTAL ────────────────────────────────────
-function recalcularTotal() {
-  const precio = parseFloat(document.getElementById('precioKg').value) || 0;
-  const cantidad = parseFloat(document.getElementById('cantidadKg').value) || 0;
-  const regex = /^\d+(\.\d{1,2})?$/;
-  if (document.getElementById('precioKg').value.trim() && !regex.test(document.getElementById('precioKg').value.trim())) {
-    document.getElementById('totalEstimado').textContent = '$ 0.00';
-    return;
-  }
-  const total = precio * cantidad;
-  document.getElementById('totalEstimado').textContent =
-    '$ ' + total.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-}
+// ── GUARDAR VENTA ───────────────────────────────────
+async function confirmarVenta() {
+  const clienteId = document.getElementById('fCliente').value;
+  if (!clienteId) { showToast('Selecciona un cliente', 'error'); return; }
+  const lineasValidas = lineas.filter(l => l.productoId);
+  if (!lineasValidas.length) { showToast('Agrega al menos un producto con cantidad', 'error'); return; }
 
-// ── SPINNER ─────────────────────────────────────────
-function mostrarSpinner() {
-  document.getElementById('spinnerOverlay').classList.add('open');
-}
-
-function ocultarSpinner() {
-  document.getElementById('spinnerOverlay').classList.remove('open');
-}
-
-// ── CONFIRMACIÓN Y ENVÍO ────────────────────────────
-function confirmarVenta() {
-  const errores = validarFormulario();
-  if (errores.length > 0) {
-    showToast(errores[0], 'error');
-    return;
-  }
-  if (!confirm('¿Registrar esta venta? Los cambios no se podrán deshacer.')) return;
-  enviarVenta();
-}
-
-function validarFormulario() {
-  const errores = [];
-
-  if (!document.getElementById('clienteId').value) {
-    errores.push('Debes seleccionar un cliente de la lista.');
-  }
-
-  if (!document.getElementById('productoSelect').value) {
-    errores.push('Debes seleccionar un producto.');
-  }
-
-  if (!document.getElementById('precioKg').value.trim()) {
-    errores.push('Debes ingresar un precio por kilogramo.');
-  } else {
-    const regex = /^\d+(\.\d{1,2})?$/;
-    if (!regex.test(document.getElementById('precioKg').value.trim())) {
-      errores.push('El precio debe ser un valor numérico válido (ej: 3.50).');
+  for (const l of lineasValidas) {
+    if (!(l.cantidad > 0)) { showToast(`Revisa la cantidad del producto '${l.nombre}'`, 'error'); return; }
+    if (!(l.precio > 0)) { showToast(`Indica el precio por kg (P. /kg) de '${l.nombre}'`, 'error'); return; }
+    if (l.cantidad > l.stock) {
+      showToast(`Stock insuficiente: '${l.nombre}' solo tiene ${l.stock} kg disponibles`, 'error');
+      marcaStock(l.id);
+      return;
     }
   }
 
-  const cantidad = parseFloat(document.getElementById('cantidadKg').value);
-  if (!cantidad || cantidad <= 0) {
-    errores.push('Debes ingresar una cantidad válida en kilogramos.');
-  }
-
-  if (cantidad > stockSeleccionado && stockSeleccionado > 0) {
-    errores.push(`Stock insuficiente. Disponible: ${stockSeleccionado} kg.`);
-  }
-
-  const cedulaV = document.getElementById('clienteCedula').value.trim();
-  if (cedulaV && !/^\d{10}$/.test(cedulaV)) {
-    errores.push('La cédula debe tener exactamente 10 dígitos.');
-  }
-
-  const ruc = document.getElementById('clienteRuc').value.trim();
-  if (ruc && !/^\d{13}$/.test(ruc)) {
-    errores.push('El RUC debe tener exactamente 13 dígitos.');
-  }
-
-  const telefono = document.getElementById('clienteTelefono').value.trim();
-  if (telefono && !/^\d+$/.test(telefono)) {
-    errores.push('El teléfono solo debe contener dígitos.');
-  } else if (telefono && (telefono.length < 7 || telefono.length > 10)) {
-    errores.push('El teléfono debe tener entre 7 y 10 dígitos.');
-  }
-
-  if (!document.getElementById('fechaVenta').value) {
-    errores.push('Debes seleccionar una fecha de venta.');
-  }
-
-  return errores;
-}
-
-async function enviarVenta() {
-  mostrarSpinner();
+  const ce = clientes.find(c => c.id === Number(clienteId));
+  const productosPayload = lineasValidas.map(l => ({
+    productoId: l.productoId,
+    calidad: l.calidad,
+    precioKg: l.precio,
+    cantidadKg: l.cantidad
+  }));
 
   const body = {
-    clienteNombre: document.getElementById('clienteBusqueda').value.trim(),
-    clienteCedula: document.getElementById('clienteCedula').value.trim(),
-    clienteRuc: document.getElementById('clienteRuc').value.trim(),
-    clienteTelefono: document.getElementById('clienteTelefono').value.trim(),
-    clienteDireccion: document.getElementById('clienteDireccion').value.trim(),
-    numeroFactura: document.getElementById('numeroFactura').value.trim(),
-    usuarioRegistra: document.getElementById('usuarioRegistra').value.trim(),
-    productos: [{
-      productoId: parseInt(document.getElementById('productoSelect').value),
-      calidad: document.getElementById('calidadSelect').value,
-      precioKg: parseFloat(document.getElementById('precioKg').value.trim()),
-      cantidadKg: parseFloat(document.getElementById('cantidadKg').value)
-    }]
+    clienteNombre: ce ? ce.nombre : '',
+    clienteCedula: ce ? (ce.cedula || '') : '',
+    clienteRuc: ce ? (ce.ruc || '') : '',
+    clienteTelefono: ce ? (ce.telefono || '') : '',
+    clienteDireccion: ce ? (ce.direccion || '') : '',
+    numeroFactura: document.getElementById('numeroFactura').value,
+    usuarioRegistra: u.username || '',
+    productos: productosPayload
   };
 
   try {
-    const res = await fetch(`${API}/registrar`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+    const res  = await fetch(`${API_VENTAS}/registrar`, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
     });
-
     const data = await res.json();
-
     if (!res.ok) {
-      ocultarSpinner();
-      showToast(data.error || 'No fue posible registrar la venta.', 'error');
-      return;
+      showToast('Error: ' + (data.error || 'No se pudo registrar'), 'error'); return;
     }
-
-    ocultarSpinner();
-    showToast('Venta registrada correctamente ✓', 'success');
+    showToast('Venta registrada · Factura ' + data.numeroFactura + ' ✓');
+    await cargarProductos();
+    await cargarKPIs();
     limpiarFormulario();
-
-  } catch {
-    ocultarSpinner();
-    showToast('No fue posible conectar con el servidor.', 'error');
-  }
+  } catch { showToast('Error al registrar la venta', 'error'); }
 }
 
 function limpiarFormulario() {
-  document.getElementById('clienteId').value = '';
-  document.getElementById('clienteBusqueda').value = '';
-  document.getElementById('clienteCedula').value = '';
-  document.getElementById('clienteRuc').value = '';
-  document.getElementById('clienteTelefono').value = '';
-  document.getElementById('clienteDireccion').value = '';
-  document.getElementById('clienteEstado').className = 'badge badge-disponible';
-  document.getElementById('clienteEstado').textContent = '● Activo';
-  document.getElementById('productoSelect').value = '';
-  document.getElementById('productoCategoria').value = '';
-  document.getElementById('precioKg').value = '';
-  document.getElementById('precioKg').classList.remove('input-error');
-  document.getElementById('precioError').classList.add('hidden');
-  document.getElementById('cantidadKg').value = '';
-  document.getElementById('stockValor').textContent = '0';
-  stockSeleccionado = 0;
-  ocultarWarningStock();
-  document.getElementById('totalEstimado').textContent = '$ 0.00';
+  document.getElementById('fCliente').value = '';
+  onClienteSeleccionado();
   document.getElementById('fechaVenta').value = new Date().toISOString().slice(0, 10);
-  cargarNumeroFactura();
-  cargarProductos();
-  clienteDropdown.classList.remove('open');
-  const btn = document.getElementById('btnConfirmar');
-  btn.disabled = false;
-  btn.style.opacity = '1';
-  btn.style.cursor = 'pointer';
+  lineas = [];
+  renderLineas();
+  agregarLinea();
+  generarNumero();
 }
+
+// ── RECIBO / FACTURA ────────────────────────────────
+function datosReciboActual() {
+  const ce = clientes.find(c => c.id === Number(document.getElementById('fCliente').value));
+  const lineaValidas = lineas.filter(l => l.productoId);
+  const subtotal = lineaValidas.reduce((s, l) => s + (l.subtotal || 0), 0);
+  const iva      = subtotal * 0.15;
+  return {
+    numero:  document.getElementById('numeroFactura').value || '',
+    cliente: ce ? ce.nombre : '',
+    cedula:  ce ? (ce.cedula || '') : '',
+    ruc:     ce ? (ce.ruc || '') : '',
+    telefono: ce ? (ce.telefono || '') : '',
+    direccion: ce ? (ce.direccion || '') : '',
+    fecha: document.getElementById('fechaVenta').value
+      ? new Date(document.getElementById('fechaVenta').value).toLocaleDateString('es-EC')
+      : new Date().toLocaleDateString('es-EC'),
+    lineas: lineaValidas,
+    subtotal, iva, total: subtotal + iva
+  };
+}
+
+function pintarRecibo(r) {
+  const html = `
+    <div class="recibo-head">
+      <div class="recibo-titulo">CACAOGEST</div>
+      <div class="recibo-sub">Ciclo 2026 · RUC 0000000000001</div>
+      <div class="recibo-centro">Av. Principal s/n, Ecuador</div>
+    </div>
+    <div class="recibo-meta">
+      <div>FACTURA <strong>${r.numero}</strong></div>
+      <div>Fecha: ${r.fecha}</div>
+      <div>Cliente: <strong>${r.cliente}</strong></div>
+      ${r.cedula ? `<div>Cédula: ${r.cedula}</div>` : ''}
+      ${r.ruc ? `<div>RUC: ${r.ruc}</div>` : ''}
+      ${r.telefono ? `<div>Tel: ${r.telefono}</div>` : ''}
+      ${r.direccion ? `<div>Dir: ${r.direccion}</div>` : ''}
+    </div>
+    <table class="recibo-tabla">
+      <thead><tr><th>Cant</th><th>Detalle</th><th>P.Unit</th><th>Subtotal</th></tr></thead>
+      <tbody>
+        ${r.lineas.map(l => `<tr><td>${l.cantidad}</td><td>${l.nombre} · ${l.calidad || ''}</td><td>${fmtMoney(l.precio)}</td><td>${fmtMoney(l.subtotal)}</td></tr>`).join('')}
+      </tbody>
+    </table>
+    <div class="recibo-totales">
+      <div>Subtotal: <strong>${fmtMoney(r.subtotal)}</strong></div>
+      <div>IVA (15%): <strong>${fmtMoney(r.iva)}</strong></div>
+      <div class="recibo-grand">TOTAL: <strong>${fmtMoney(r.total)}</strong></div>
+    </div>
+    <div class="recibo-pie">¡Gracias por su preferencia!</div>`;
+  document.getElementById('reciboContenido').innerHTML = html;
+}
+
+function actualizarRecibo() { pintarRecibo(datosReciboActual()); }
+
+function abrirPanelRecibo() { document.getElementById('reciboOverlay').classList.add('open'); }
+function cerrarRecibo() { document.getElementById('reciboOverlay').classList.remove('open'); }
+
+function previsualizarRecibo() {
+  actualizarRecibo();
+  abrirPanelRecibo();
+}
+
+function imprimirRecibo() {
+  actualizarRecibo();
+  const cont = document.getElementById('reciboContenido');
+  const printArea = document.getElementById('reciboPrint');
+  if (!cont || !printArea) return;
+  printArea.innerHTML = cont.innerHTML;
+  printArea.classList.add('listo');
+  setTimeout(() => { window.print(); }, 100);
+  document.addEventListener('afterprint', () => printArea.classList.remove('listo'), { once: true });
+}
+
+init();

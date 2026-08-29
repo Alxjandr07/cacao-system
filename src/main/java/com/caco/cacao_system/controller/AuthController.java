@@ -1,6 +1,7 @@
 package com.caco.cacao_system.controller;
 
 import com.caco.cacao_system.model.Usuario;
+import com.caco.cacao_system.service.PermisoService;
 import com.caco.cacao_system.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ public class AuthController {
 
     private final UsuarioService usuarioService;
     private final PasswordEncoder passwordEncoder;
+    private final PermisoService permisoService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credenciales) {
@@ -42,6 +44,7 @@ public class AuthController {
         response.put("nombres", usuario.get().getNombres());
         response.put("apellidos", usuario.get().getApellidos());
         response.put("rol", usuario.get().getRol().getNombre());
+        response.put("permisos", permisoService.permisosDeUsuario(usuario.get().getUsername()));
         return ResponseEntity.ok(response);
     }
 

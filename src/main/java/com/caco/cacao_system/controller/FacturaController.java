@@ -90,6 +90,21 @@ public class FacturaController {
         }
     }
 
+    @PutMapping("/{id}/estado")
+    public ResponseEntity<?> cambiarEstado(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        try {
+            EstadoFactura estado = EstadoFactura.valueOf(body.get("estado").toUpperCase());
+            if (estado == EstadoFactura.ANULADA) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Usa el botón de anular para anular la factura."));
+            }
+            return ResponseEntity.ok(facturaService.cambiarEstado(id, estado));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Estado no válido."));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         return facturaService.buscarPorId(id)

@@ -1,5 +1,6 @@
 package com.caco.cacao_system.controller;
 
+import com.caco.cacao_system.model.MotivoMovimiento;
 import com.caco.cacao_system.model.MovimientoInventario;
 import com.caco.cacao_system.model.ProductoInventario;
 import com.caco.cacao_system.model.TipoMovimiento;
@@ -75,10 +76,19 @@ public class InventarioController {
             Long productoId = Long.parseLong(body.get("productoId"));
             TipoMovimiento tipo = TipoMovimiento.valueOf(body.get("tipo"));
             BigDecimal cantidad = new BigDecimal(body.get("cantidad"));
+            String motivoTipoStr = body.get("motivoTipo");
             String motivo = body.get("motivo");
 
+            MotivoMovimiento motivoTipo = null;
+            if (motivoTipoStr != null && !motivoTipoStr.isBlank()) {
+                motivoTipo = MotivoMovimiento.valueOf(motivoTipoStr);
+                if (!motivoTipo.aplicaA(tipo)) {
+                    throw new RuntimeException("El motivo no corresponde al tipo de movimiento seleccionado");
+                }
+            }
+
             MovimientoInventario resultado = inventarioService
-                    .registrarMovimiento(productoId, tipo, cantidad, motivo);
+                    .registrarMovimiento(productoId, tipo, cantidad, motivoTipo, motivo);
 
             return ResponseEntity.ok(resultado);
         } catch (RuntimeException e) {

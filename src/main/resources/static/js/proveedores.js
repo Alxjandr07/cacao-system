@@ -1,4 +1,4 @@
-const API = 'http://localhost:8080/api/proveedores';
+const API = 'http://localhost:8081/api/proveedores';
 let proveedores = [];
 
 const u = JSON.parse(localStorage.getItem('usuario') || '{}');

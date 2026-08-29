@@ -116,7 +116,7 @@
 
 <!-- MODAL FACTURA -->
 <div class="modal-overlay" id="modalFactura">
-  <div class="modal">
+  <div class="modal modal-lg">
     <div class="modal-header">
       <span class="modal-title" id="modalFacturaTitulo">Nueva factura</span>
       <button class="modal-close" onclick="cerrarModal('modalFactura')">✕</button>
@@ -136,33 +136,54 @@
             <option value="ANULADA">Anulada</option>
           </select>
         </div>
+      </div>
+
+      <div class="form-grid fact-cliente">
         <div class="field col-full">
-          <label>Nombre del cliente *</label>
-          <input type="text" id="fNombreCliente" placeholder="Nombre completo del cliente">
+          <label>Cliente *</label>
+          <select id="fCliente" onchange="onClienteSeleccionado()">
+            <option value="">— Seleccionar cliente —</option>
+          </select>
         </div>
         <div class="field">
-          <label>Cédula del cliente</label>
-          <input type="text" id="fCedulaCliente" placeholder="0000000000" maxlength="10">
+          <label>Cédula</label>
+          <input type="text" id="fCedulaCliente" readonly>
         </div>
         <div class="field">
-          <label>RUC del cliente</label>
-          <input type="text" id="fRucCliente" placeholder="0000000000001" maxlength="13">
+          <label>RUC</label>
+          <input type="text" id="fRucCliente" readonly>
+        </div>
+        <div class="field">
+          <label>Teléfono</label>
+          <input type="text" id="fTelefono" readonly>
         </div>
         <div class="field">
           <label>Dirección</label>
-          <input type="text" id="fDireccion" placeholder="Dirección del cliente">
+          <input type="text" id="fDireccion" readonly>
         </div>
-        <div class="field">
-          <label>Subtotal *</label>
-          <input type="number" id="fSubtotal" placeholder="0.00" min="0" step="0.01" oninput="calcularTotal()">
+      </div>
+
+      <div class="fact-lines">
+        <div class="fact-lines-head">
+          <span class="fl-titulo">Detalle de productos</span>
+          <button class="btn-outline" onclick="agregarLinea()">+ Agregar línea</button>
         </div>
-        <div class="field">
-          <label>IVA (15%)</label>
-          <input type="number" id="fIva" placeholder="0.00" readonly>
-        </div>
-        <div class="field">
-          <label>Total</label>
-          <input type="number" id="fTotal" placeholder="0.00" readonly>
+        <table id="lineasTabla">
+          <thead>
+            <tr>
+              <th style="width:44%;">Producto</th>
+              <th style="width:14%;">Cantidad</th>
+              <th style="width:18%;">P. Unitario</th>
+              <th style="width:18%;">Subtotal</th>
+              <th style="width:6%;"></th>
+            </tr>
+          </thead>
+          <tbody id="lineasBody"></tbody>
+        </table>
+        <div class="fact-totales">
+          <div class="total-row"><span>Subtotal</span><span id="fSubtotal">$0.00</span></div>
+          <div class="total-row"><span>IVA (15%)</span><span id="fIva">$0.00</span></div>
+          <div class="total-row total-final"><span>Total</span><span id="fTotal">$0.00</span></div>
         </div>
         <div class="field col-full">
           <label>Observaciones</label>
@@ -171,13 +192,35 @@
       </div>
     </div>
     <div class="modal-footer">
+      <button class="btn-outline" onclick="previsualizarRecibo()">👁 Previsualizar</button>
+      <button class="btn-outline" onclick="imprimirRecibo()">🖨 Imprimir</button>
       <button class="btn-cancel" onclick="cerrarModal('modalFactura')">Cancelar</button>
-      <button class="btn-primary" onclick="guardarFactura()">Guardar</button>
+      <button class="btn-primary" onclick="guardarFactura()">Guardar factura</button>
     </div>
   </div>
 </div>
 
+<!-- PANEL DE VISTA PREVIA / RECIBO -->
+<div class="recibo-overlay" id="reciboOverlay">
+  <div class="recibo-panel">
+    <div class="recibo-panel-head">
+      <span class="recibo-panel-titulo">Vista previa del recibo</span>
+      <div>
+        <button class="btn-outline" onclick="imprimirRecibo()">🖨 Imprimir</button>
+        <button class="recibo-close" onclick="cerrarRecibo()">✕</button>
+      </div>
+    </div>
+    <div class="recibo-panel-body">
+      <div class="recibo" id="reciboContenido"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENEDOR SOLO PARA IMPRESION -->
+<div id="reciboPrint" class="recibo-print"></div>
+
 <div class="toast" id="toast"></div>
+<script src="js/app.js"></script>
 <script src="js/facturacion.js"></script>
 </body>
 </html>

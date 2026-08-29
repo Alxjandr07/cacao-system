@@ -31,7 +31,11 @@ public class MovimientoInventario {
     @Column(nullable = false)
     private BigDecimal cantidad;
 
-    private String motivo; // "Cosecha lote #F-2024-18", "Venta", etc.
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private MotivoMovimiento motivoTipo;
+
+    private String motivo; // Detalle opcional del motivo
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime fecha;
