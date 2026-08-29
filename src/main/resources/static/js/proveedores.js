@@ -1,5 +1,23 @@
 const API = 'http://localhost:8081/api/proveedores';
 let proveedores = [];
+let proveedorActual = null;
+let insumos = [];
+
+const SUMINISTROS = {
+  QUIMICOS:     { label: '🧪 Químicos',     cls: 'badge-poda' },
+  FERTILIZANTES:{ label: '🌿 Fertilizantes',cls: 'badge-cacao' },
+  HERRAMIENTAS: { label: '🔧 Herramientas', cls: 'badge-primera' },
+  PLANTAS_CACAO:{ label: '🌱 Plantas de cacao', cls: 'badge-pendiente' },
+  OTROS:        { label: '📦 Otros',        cls: 'badge-otro' }
+};
+
+function formatearSuministros(p) {
+  const lista = (p.suministros || '').split(',').map(s => s.trim()).filter(Boolean);
+  if (!lista.length) return '<span style="font-size:11px;color:var(--border-color)">—</span>';
+  return lista.map(s => SUMINISTROS[s]
+    ? `<span class="badge ${SUMINISTROS[s].cls}">${SUMINISTROS[s].label}</span>`
+    : `<span class="badge badge-otro">${s}</span>`).join(' ');
+}
 
 const u = JSON.parse(localStorage.getItem('usuario') || '{}');
 if (u.nombres) document.getElementById('userName').textContent = u.nombres + ' ' + (u.apellidos || '');
@@ -23,22 +41,26 @@ function setEstadoValue(activo) {
   });
 }
 
-async function cargarProveedores() {
+async function cargarProveedores(conToast) {
   try {
     const res = await fetch(API);
     if (!res.ok) throw new Error();
     proveedores = await res.json();
     filtrar();
+    if (conToast) showToast('Datos actualizados correctamente ✓');
   } catch {
-    document.getElementById('tablaBody').innerHTML =
-      '<tr><td colspan="8" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>';
+    if (conToast) showToast('No se pudieron actualizar los datos', 'error');
+    if (!proveedores.length) {
+      document.getElementById('tablaBody').innerHTML =
+        '<tr><td colspan="9" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>';
+    }
   }
 }
 
 function renderTabla(lista) {
   const tbody = document.getElementById('tablaBody');
   if (!lista.length) {
-    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No hay proveedores registrados</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No hay proveedores registrados</td></tr>';
     return;
   }
   tbody.innerHTML = lista.map(p => `
@@ -49,10 +71,12 @@ function renderTabla(lista) {
       <td class="mono">${p.telefono || '—'}</td>
       <td>${p.ciudad}</td>
       <td><span class="badge badge-cacao">${formatearTipo(p.tipo)}</span></td>
+      <td style="max-width:220px">${formatearSuministros(p)}</td>
       <td>${p.activo
         ? '<span class="badge badge-completada">✓ Activo</span>'
         : '<span class="badge badge-cancelada">✕ Inactivo</span>'}</td>
       <td>
+        <button class="action-btn" onclick="abrirInsumos(${p.id})">📦 Insumos</button>
         <button class="action-btn" onclick="editarProveedor(${p.id})">✎ Editar</button>
         <button class="action-btn" onclick="toggleEstadoProveedor(${p.id})">${p.activo ? '🔒 Desactivar' : '🔓 Activar'}</button>
         <button class="action-btn danger" onclick="eliminarProveedor(${p.id})">✕ Eliminar</button>
@@ -89,9 +113,22 @@ function abrirModalProveedor() {
   document.getElementById('pDireccion').value = '';
   document.getElementById('pCiudad').value = '';
   setEstadoValue(true);
+  setSuministros([]);
   document.getElementById('rucError').classList.add('hidden');
   document.getElementById('rucError').textContent = '';
   document.getElementById('modalProveedor').classList.add('open');
+}
+
+function setSuministros(lista) {
+  const opciones = ['QUIMICOS','FERTILIZANTES','HERRAMIENTAS','PLANTAS_CACAO','OTROS'];
+  opciones.forEach(v => {
+    const cb = document.querySelector(`#pSuministrosGroup input[value="${v}"]`);
+    if (cb) cb.checked = lista.includes(v);
+  });
+}
+
+function getSuministros() {
+  return [...document.querySelectorAll('#pSuministrosGroup input:checked')].map(c => c.value).join(',') || null;
 }
 
 function editarProveedor(id) {
@@ -109,6 +146,7 @@ function editarProveedor(id) {
   document.getElementById('pDireccion').value = p.direccion || '';
   document.getElementById('pCiudad').value = p.ciudad || '';
   setEstadoValue(p.activo);
+  setSuministros((p.suministros || '').split(',').map(s => s.trim()).filter(Boolean));
   document.getElementById('rucError').classList.add('hidden');
   document.getElementById('rucError').textContent = '';
   document.getElementById('modalProveedor').classList.add('open');
@@ -166,7 +204,7 @@ async function guardarProveedor() {
 
   if (errores.length) { errores.forEach(e => showToast(e, 'error')); return; }
 
-  const body = { ruc, nombre, representante: representante || undefined, tipo, telefono: telefono || undefined, email: email || undefined, direccion, ciudad, activo };
+  const body = { ruc, nombre, representante: representante || undefined, tipo, telefono: telefono || undefined, email: email || undefined, direccion, ciudad, suministros: getSuministros(), activo };
 
   try {
     if (!id) {
@@ -269,6 +307,89 @@ function generarReporte() {
 }
 
 function cerrarModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ── INSUMOS DEL PROVEEDOR (vinculados a inventario) ─────────
+async function abrirInsumos(proveedorId) {
+  const p = proveedores.find(x => x.id === proveedorId);
+  if (!p) return;
+  proveedorActual = p;
+  document.getElementById('insumosTitulo').textContent = `Insumos de ${p.nombre}`;
+  document.getElementById('iNombre').value = '';
+  document.getElementById('iUnidad').value = 'unidades';
+  document.getElementById('iStockMin').value = '0';
+  document.getElementById('modalInsumos').classList.add('open');
+  await cargarInsumos(proveedorId);
+}
+
+async function cargarInsumos(proveedorId) {
+  try {
+    const res = await fetch(`${API}/${proveedorId}/insumos`);
+    if (!res.ok) throw new Error();
+    insumos = await res.json();
+    renderInsumos();
+  } catch {
+    document.getElementById('insumosBody').innerHTML =
+      '<tr><td colspan="5" class="empty-state">⚠ No se pudieron cargar los insumos</td></tr>';
+  }
+}
+
+function renderInsumos() {
+  const tbody = document.getElementById('insumosBody');
+  if (!insumos.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Este proveedor aún no registra insumos</td></tr>';
+    return;
+  }
+  tbody.innerHTML = insumos.map(i => `
+    <tr>
+      <td class="name">${i.nombre}</td>
+      <td>${i.unidadMedida}</td>
+      <td class="mono">${i.stockMinimo ?? 0}</td>
+      <td class="mono">${i.producto?.stockActual ?? 0} ${i.producto?.unidadMedida || i.unidadMedida}</td>
+      <td>
+        <button class="action-btn" style="font-size:11px;color:var(--green-dark)" onclick="verEnInventario(${i.id})">📦 Ver</button>
+        <button class="action-btn danger" onclick="eliminarInsumo(${i.id})">✕</button>
+      </td>
+    </tr>`).join('');
+}
+
+async function guardarInsumo() {
+  const nombre = document.getElementById('iNombre').value.trim();
+  const unidad = document.getElementById('iUnidad').value;
+  const stockMin = document.getElementById('iStockMin').value;
+  if (!nombre || nombre.length < 3) { showToast('El nombre del insumo debe tener al menos 3 caracteres.', 'error'); return; }
+  if (!proveedorActual) return;
+  try {
+    const res = await fetch(`${API}/${proveedorActual.id}/insumos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre, unidadMedida: unidad, stockMinimo: stockMin || 0 })
+    });
+    const data = await res.json();
+    if (!res.ok) { showToast(data.error || 'Error al agregar insumo', 'error'); return; }
+    document.getElementById('iNombre').value = '';
+    document.getElementById('iStockMin').value = '0';
+    showToast('Insumo creado y agregado a Inventario ✓');
+    await cargarInsumos(proveedorActual.id);
+  } catch { showToast('Error al guardar insumo', 'error'); }
+}
+
+async function eliminarInsumo(insumoId) {
+  const i = insumos.find(x => x.id === insumoId);
+  if (!i) return;
+  if (!confirm(`¿Quitar "${i.nombre}" del catálogo de ${proveedorActual.nombre}?`)) return;
+  try {
+    const res = await fetch(`${API}/insumos/${insumoId}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error();
+    showToast('Insumo quitado del proveedor (el inventario se conserva)');
+    await cargarInsumos(proveedorActual.id);
+  } catch { showToast('Error al eliminar insumo', 'error'); }
+}
+
+function verEnInventario(insumoId) {
+  const i = insumos.find(x => x.id === insumoId);
+  if (!i?.producto) return;
+  window.open(`inventario.html?producto=${i.producto.id}`, '_blank');
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.estado-toggle').forEach(toggle => {

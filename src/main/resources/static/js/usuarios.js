@@ -226,14 +226,16 @@ async function eliminarRol(id) {
 }
 
 // ── CRUD USUARIOS ───────────────────────────────────
-async function cargarUsuarios() {
+async function cargarUsuarios(conToast) {
   try {
     const res = await fetch(API_USUARIOS);
     if (!res.ok) throw new Error();
     usuarios = await res.json();
     renderizarUsuarios();
+    if (conToast) showToast('Datos actualizados correctamente ✓');
   } catch {
-    showToast('Error al cargar usuarios', 'error');
+    if (conToast) showToast('No se pudieron actualizar los datos', 'error');
+    else if (!usuarios.length) showToast('Error al cargar usuarios', 'error');
   }
 }
 

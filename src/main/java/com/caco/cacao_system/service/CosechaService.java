@@ -82,6 +82,30 @@ public class CosechaService {
         return guardado;
     }
 
+    @Transactional
+    public RegistroCosecha registrarCosechaConNuevoProducto(Long parcelaId,
+                                                            String nombreProducto,
+                                                            BigDecimal stockMinimo,
+                                                            RegistroCosecha datos) {
+
+        if (nombreProducto == null || nombreProducto.trim().length() < 3) {
+            throw new RuntimeException("El nombre del nuevo cacao debe tener al menos 3 caracteres.");
+        }
+
+        // Crear el producto de inventario (tipo CACAO, en kg) con stock en 0:
+        // es la propia cosecha quien sumará la cantidad al stock.
+        ProductoInventario producto = ProductoInventario.builder()
+                .nombre(nombreProducto.trim())
+                .tipo(TipoProducto.CACAO)
+                .unidadMedida("kg")
+                .stockActual(BigDecimal.ZERO)
+                .stockMinimo(stockMinimo != null ? stockMinimo : BigDecimal.ZERO)
+                .build();
+        producto = inventarioRepo.save(producto);
+
+        return registrarCosecha(parcelaId, producto.getId(), datos);
+    }
+
     // ── ACTUALIZAR ─────────────────────────────────────────
 
     @Transactional

@@ -97,7 +97,7 @@
       <input class="date-input" type="date" id="filtroInicio" onchange="filtrar()" title="Desde">
       <input class="date-input" type="date" id="filtroFin"    onchange="filtrar()" title="Hasta">
       <button class="btn-outline" onclick="limpiarFiltros()">✕ Limpiar</button>
-      <button class="btn-outline" onclick="cargarCosechas()">↻ Actualizar</button>
+      <button class="btn-outline" onclick="cargarCosechas(true)">↻ Actualizar</button>
     </div>
 
     <!-- TABLA -->
@@ -134,7 +134,11 @@
         <div class="field col-full"><label>Parcela *</label><select id="cParcelaId"></select></div>
         <div class="field col-full">
           <label>Producto en inventario * <span style="font-weight:400;text-transform:none;color:var(--border-color)">(donde se sumará el stock)</span></label>
-          <select id="cProductoId"></select>
+          <select id="cProductoId" onchange="onProductoChange()"></select>
+        </div>
+        <div class="field col-full" id="nuevoProductoFields" style="display:none">
+          <label>Nombre del nuevo cacao * <span style="font-weight:400;text-transform:none;color:var(--border-color)">(se creará en Inventario)</span></label>
+          <input type="text" id="cNuevoNombre" placeholder="Ej: Cacao CCN-51 — Lote B">
         </div>
         <div class="field"><label>Fecha de cosecha *</label><input type="date" id="cFecha"></div>
         <div class="field"><label>Cantidad (kg) *</label><input type="number" id="cCantidad" placeholder="0.00" min="0.01" step="0.01"></div>

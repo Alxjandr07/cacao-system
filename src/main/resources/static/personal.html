@@ -48,28 +48,94 @@
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn-outline" onclick="generarReporte()">📄 Reporte</button>
-      <button class="btn-primary" onclick="abrirModalPersonal()">+ Nuevo empleado</button>
+      <button class="btn-primary" id="btnNuevoEmpleado" onclick="abrirModalPersonal()">+ Nuevo empleado</button>
     </div>
   </div>
   <div class="content">
-    <div class="toolbar">
-      <input class="search-input" type="text" id="searchInput" placeholder="🔍 Buscar por cédula, nombre, apellido o cargo...">
-      <select class="filter-select" id="filtroEstado" onchange="filtrar()">
-        <option value="">Todos los estados</option>
-        <option value="true">Activos</option>
-        <option value="false">Inactivos</option>
-      </select>
-      <button class="btn-outline" onclick="cargarPersonal()">↻ Actualizar</button>
+    <div class="tabs">
+      <button class="tab active" id="tabEmpleados" onclick="switchPersonalTab('empleados')">👤 Empleados</button>
+      <button class="tab" id="tabSueldos" onclick="switchPersonalTab('sueldos')">💰 Sueldos y Pagos</button>
     </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr><th>Cédula</th><th>Nombres</th><th>Apellidos</th><th>Cargo</th><th>Teléfono</th><th>Email</th><th>Fecha Ingreso</th><th>Estado</th><th>Acción</th></tr>
-        </thead>
-        <tbody id="tablaBody">
-          <tr><td colspan="9" class="empty-state">Cargando empleados...</td></tr>
-        </tbody>
-      </table>
+
+    <div id="vistaEmpleados">
+      <div class="toolbar">
+        <input class="search-input" type="text" id="searchInput" placeholder="🔍 Buscar por cédula, nombre, apellido o cargo...">
+        <select class="filter-select" id="filtroEstado" onchange="filtrar()">
+          <option value="">Todos los estados</option>
+          <option value="true">Activos</option>
+          <option value="false">Inactivos</option>
+        </select>
+        <button class="btn-outline" onclick="cargarPersonal(true)">↻ Actualizar</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Cédula</th><th>Nombres</th><th>Apellidos</th><th>Cargo</th><th>Teléfono</th><th>Email</th><th>Fecha Ingreso</th><th>Estado</th><th>Acción</th></tr>
+          </thead>
+          <tbody id="tablaBody">
+            <tr><td colspan="9" class="empty-state">Cargando empleados...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="vistaSueldos" style="display:none">
+      <div class="info-box" style="margin-bottom:18px">💡 Estos sueldos se usan al asignar un empleado a una actividad en el módulo de Cultivo y Mantenimiento.</div>
+
+      <div class="toolbar" style="margin-bottom:6px">
+        <span class="page-sub">Sueldos diarios por tipo de actividad</span>
+      </div>
+      <div class="table-wrap" style="margin-bottom:14px">
+        <table>
+          <thead>
+            <tr><th>Empleado</th><th>Tipo</th><th>Sueldo diario</th><th>Acción</th></tr>
+          </thead>
+          <tbody id="tablaSueldos">
+            <tr><td colspan="4" class="empty-state">Selecciona un empleado para ver sus sueldos.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="toolbar" style="flex-wrap:wrap">
+        <select class="filter-select" id="sEmpleado" onchange="onSueldoEmpleadoChange()">
+          <option value="">Selecciona un empleado...</option>
+        </select>
+        <select class="filter-select" id="sTipo">
+          <option value="">Tipo de actividad...</option>
+          <option value="PODA">Poda</option>
+          <option value="FUMIGACION">Fumigación</option>
+          <option value="RIEGO">Riego</option>
+          <option value="FERTILIZACION">Fertilización</option>
+          <option value="CONTROL_PLAGAS">Control de plagas</option>
+          <option value="LIMPIEZA">Limpieza</option>
+          <option value="OTRO">Otro</option>
+        </select>
+        <input class="date-input" type="number" id="sSueldo" placeholder="Sueldo diario (USD)" min="0" step="0.01" style="width:160px">
+        <button class="btn-primary" onclick="guardarSueldoEmpleado()">💾 Guardar sueldo</button>
+        <span style="margin-left:auto;font-size:12px;color:var(--text-main);font-family:'DM Sans',sans-serif">
+          Pendiente: <strong id="sTotalPendiente" style="color:var(--amber-text);font-family:'IBM Plex Mono',monospace">$0.00</strong>
+          &nbsp;·&nbsp; Pagado: <strong id="sTotalPagado" style="color:var(--green-dark);font-family:'IBM Plex Mono',monospace">$0.00</strong>
+        </span>
+      </div>
+
+      <div class="toolbar" style="margin-top:26px;margin-bottom:6px">
+        <span class="page-sub">Pagos y asignaciones por actividad</span>
+      </div>
+      <div class="toolbar">
+        <select class="filter-select" id="filtroPago" onchange="cargarPagos()">
+          <option value="">Todos los empleados</option>
+        </select>
+        <button class="btn-outline" onclick="cargarPagos(true)">↻ Actualizar</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Empleado</th><th>Parcela</th><th>Tipo actividad</th><th>Monto</th><th>Pago</th><th>F. Pago</th><th>Acción</th></tr>
+          </thead>
+          <tbody id="tablaPagos">
+            <tr><td colspan="7" class="empty-state">Cargando asignaciones...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>

@@ -47,11 +47,19 @@ public class PermisoInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        // Quien gestiona usuarios necesita ver la lista de roles para asignarlos,
-        // aunque no pueda crear/editar/eliminar roles (eso sigue siendo GESTIONAR_ROLES).
+        // Ampliaciones puntuales: se permite la acción si el usuario tiene el permiso
+        // principal O alguno de los permisos adicionales relacionados.
         boolean permisosOk;
-        if ("GET".equalsIgnoreCase(request.getMethod())
+        String[] adicionales = permisosAdicionales(request.getMethod(), path);
+        if (adicionales != null) {
+            String[] todos = new String[adicionales.length + 1];
+            todos[0] = permiso;
+            System.arraycopy(adicionales, 0, todos, 1, adicionales.length);
+            permisosOk = permisoService.tieneAlgunPermiso(username, todos);
+        } else if ("GET".equalsIgnoreCase(request.getMethod())
                 && path.startsWith("/api/roles")) {
+            // Quien gestiona usuarios necesita ver la lista de roles para asignarlos,
+            // aunque no pueda crear/editar/eliminar roles (eso sigue siendo GESTIONAR_ROLES).
             permisosOk = permisoService.tieneAlgunPermiso(username,
                     permiso, "GESTIONAR_USUARIOS");
         } else {
@@ -73,6 +81,29 @@ public class PermisoInterceptor implements HandlerInterceptor {
             if (uri.startsWith(e.getKey())) {
                 return e.getValue();
             }
+        }
+        return null;
+    }
+
+    /**
+     * Devuelve permisos adicionales que también habilitan una ruta, o null si la
+     * ruta solo admite su permiso principal.
+     * - GET /api/personal* : el módulo Cultivo (GESTIONAR_CULTIVO) necesita listar
+     *   empleados para poder asignarlos a las actividades de las parcelas.
+     * - /api/personal/pagos y /api/personal/sueldos : se usan tanto desde Gestión de
+     *   Personal como desde Cultivo (asignar empleado a actividad y marcar pagos).
+     * - GET /api/inventario/productos : el módulo Cosecha (GESTIONAR_COSECHA) necesita
+     *   listar los productos de inventario a los que se sumará el stock cosechado.
+     */
+    private String[] permisosAdicionales(String method, String path) {
+        boolean esSalarial = path.startsWith("/api/personal/pagos")
+                || path.startsWith("/api/personal/sueldos");
+        if (("GET".equalsIgnoreCase(method) && path.startsWith("/api/personal"))
+                || esSalarial) {
+            return new String[]{"GESTIONAR_CULTIVO"};
+        }
+        if ("GET".equalsIgnoreCase(method) && path.startsWith("/api/inventario/productos")) {
+            return new String[]{"GESTIONAR_COSECHA"};
         }
         return null;
     }

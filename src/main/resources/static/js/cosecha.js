@@ -68,30 +68,41 @@ async function cargarParcelas() {
 
 async function cargarProductos() {
   try {
-    const res = await fetch(API_INVENTARIO);
+    const res = await fetch(`${API_INVENTARIO}/tipo/CACAO`);
     if (!res.ok) throw new Error();
     productos = await res.json();
     const sel = document.getElementById('cProductoId');
     sel.innerHTML = '<option value="">Selecciona producto...</option>' +
       productos.map(p =>
         `<option value="${p.id}">${p.nombre} (Stock: ${p.stockActual} ${p.unidadMedida})</option>`
-      ).join('');
+      ).join('') +
+      '<option value="nuevo">➕ Crear nuevo cacao...</option>';
   } catch {
     document.getElementById('cProductoId').innerHTML =
       '<option value="">⚠ No se pudieron cargar productos</option>';
   }
 }
 
-async function cargarCosechas() {
+function onProductoChange() {
+  const esNuevo = document.getElementById('cProductoId').value === 'nuevo';
+  document.getElementById('nuevoProductoFields').style.display = esNuevo ? '' : 'none';
+  limpiarErrores();
+}
+
+async function cargarCosechas(conToast) {
   try {
     const res = await fetch(API_COSECHA);
     if (!res.ok) throw new Error();
     cosechas  = await res.json();
     actualizarKPIs();
     filtrar();
+    if (conToast) showToast('Datos actualizados correctamente ✓');
   } catch {
-    document.getElementById('tablaBody').innerHTML =
-      '<tr><td colspan="9" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>';
+    if (conToast) showToast('No se pudieron actualizar los datos', 'error');
+    if (!cosechas.length) {
+      document.getElementById('tablaBody').innerHTML =
+        '<tr><td colspan="9" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>';
+    }
   }
 }
 
@@ -170,7 +181,9 @@ function abrirModal() {
   document.getElementById('cCalidad').value               = 'EXTRA';
   document.getElementById('cResponsable').value           = '';
   document.getElementById('cObservaciones').value         = '';
+  document.getElementById('cNuevoNombre').value           = '';
   document.getElementById('infoLote').style.display       = '';
+  document.getElementById('nuevoProductoFields').style.display = 'none';
   limpiarErrores();
   cargarProductos();
   document.getElementById('modalCosecha').classList.add('open');
@@ -189,6 +202,7 @@ function abrirEditar(id) {
   document.getElementById('cResponsable').value           = c.responsable   || '';
   document.getElementById('cObservaciones').value         = c.observaciones || '';
   document.getElementById('infoLote').style.display       = 'none';
+  document.getElementById('nuevoProductoFields').style.display = 'none';
   limpiarErrores();
   document.getElementById('modalCosecha').classList.add('open');
 }
@@ -201,6 +215,8 @@ async function guardar() {
   const fecha      = document.getElementById('cFecha').value;
   const cantidad   = document.getElementById('cCantidad').value;
   const responsable = document.getElementById('cResponsable').value.trim();
+  const nuevoNombre = document.getElementById('cNuevoNombre').value.trim();
+  const esNuevo    = productoId === 'nuevo';
   const hoy        = new Date().toISOString().split('T')[0];
   let valido = true;
 
@@ -209,6 +225,8 @@ async function guardar() {
   }
   if (!productoId) {
     marcarError('cProductoId', 'Selecciona un producto de inventario'); valido = false;
+  } else if (esNuevo && nuevoNombre.length < 3) {
+    marcarError('cNuevoNombre', 'Mínimo 3 caracteres para el nuevo cacao'); valido = false;
   }
   if (!fecha) {
     marcarError('cFecha', 'La fecha de cosecha es obligatoria'); valido = false;
@@ -224,7 +242,7 @@ async function guardar() {
   }
   if (!valido) return;
 
-  const body = {
+  const base = {
     fechaCosecha:  fecha,
     cantidadKg:    parseFloat(cantidad),
     calidad:       document.getElementById('cCalidad').value,
@@ -233,14 +251,21 @@ async function guardar() {
   };
 
   try {
-    const url    = id
-      ? `${API_COSECHA}/${id}`
-      : `${API_COSECHA}/parcela/${parcelaId}/producto/${productoId}`;
-    const method = id ? 'PUT' : 'POST';
-    const res    = await fetch(url, {
+    let url, method, body;
+    if (id) {
+      url = `${API_COSECHA}/${id}`; method = 'PUT'; body = base;
+    } else if (esNuevo) {
+      url = `${API_COSECHA}/parcela/${parcelaId}/nuevo-producto`;
+      method = 'POST';
+      body = { ...base, nombreProducto: nuevoNombre };
+    } else {
+      url = `${API_COSECHA}/parcela/${parcelaId}/producto/${productoId}`;
+      method = 'POST'; body = base;
+    }
+    const res = await fetch(url, {
       method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
     });
-    const data   = await res.json();
+    const data = await res.json();
     if (!res.ok) { showToast('Error: ' + (data.error || 'Verifica los datos'), 'error'); return; }
     cerrarModal();
     showToast(id ? 'Cosecha actualizada ✓' : `Cosecha registrada ✓ — Lote ${data.numeroLote}`);

@@ -114,4 +114,32 @@ public class ProveedorController {
                 })
                 .orElse(ResponseEntity.badRequest().body(Map.of("error", "El proveedor no existe.")));
     }
+
+    // ── INSUMOS DEL PROVEEDOR (la adición crea el producto en Inventario) ──
+
+    @GetMapping("/{id}/insumos")
+    public ResponseEntity<?> listarInsumos(@PathVariable Long id) {
+        return proveedorService.buscarPorId(id)
+                .map(p -> ResponseEntity.ok((Object) proveedorService.listarInsumos(id)))
+                .orElse(ResponseEntity.badRequest().body(Map.of("error", "El proveedor no existe.")));
+    }
+
+    @PostMapping("/{id}/insumos")
+    public ResponseEntity<?> agregarInsumo(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+        try {
+            return ResponseEntity.ok(proveedorService.crearInsumo(id, body));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/insumos/{insumoId}")
+    public ResponseEntity<?> eliminarInsumo(@PathVariable Long insumoId) {
+        try {
+            proveedorService.eliminarInsumo(insumoId);
+            return ResponseEntity.ok(Map.of("success", true));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
 }

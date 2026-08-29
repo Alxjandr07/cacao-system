@@ -58,7 +58,7 @@
     <div id="vistaParcelas">
       <div class="toolbar">
         <input class="search-input" type="text" id="searchParcela" placeholder="🔍 Buscar parcela...">
-        <button class="btn-outline" onclick="cargarParcelas()">↻ Actualizar</button>
+        <button class="btn-outline" onclick="cargarParcelas(true)">↻ Actualizar</button>
       </div>
       <div class="parcelas-grid" id="parcelasGrid">
         <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--border-color)">Cargando parcelas...</div>
@@ -92,10 +92,10 @@
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th>Parcela</th><th>Tipo</th><th>Responsable</th><th>F. Programada</th><th>F. Realizada</th><th>Insumos</th><th>Estado</th><th>Acción</th></tr>
+            <tr><th>Parcela</th><th>Tipo</th><th>Empleado</th><th>Monto</th><th>Pago</th><th>F. Programada</th><th>F. Realizada</th><th>Insumos</th><th>Estado</th><th>Acción</th></tr>
           </thead>
           <tbody id="actividadesBody">
-            <tr><td colspan="8" class="empty-state">Cargando actividades...</td></tr>
+            <tr><td colspan="10" class="empty-state">Cargando actividades...</td></tr>
           </tbody>
         </table>
       </div>
@@ -128,6 +128,10 @@
           <select id="pCanton">
             <option value="">Primero selecciona provincia</option>
           </select>
+        </div>
+        <div class="field col-full">
+          <label>Dirección</label>
+          <input type="text" id="pDireccion" placeholder="Calle, sector o referencia — Ej: Vía Quevedo km 7, recinto El Vergel">
         </div>
         <div class="field">
           <label>Hectáreas</label>
@@ -178,7 +182,7 @@
         </div>
         <div class="field">
           <label>Tipo de actividad *</label>
-          <select id="aTipo">
+          <select id="aTipo" onchange="ontipoActividadChange()">
             <option value="PODA">Poda</option>
             <option value="FUMIGACION">Fumigación</option>
             <option value="RIEGO">Riego</option>
@@ -206,8 +210,11 @@
           <input type="date" id="aFechaReal">
         </div>
         <div class="field col-full">
-          <label>Responsable</label>
-          <input type="text" id="aResponsable" placeholder="Nombre del responsable">
+          <label>Empleado asignado</label>
+          <select id="aEmpleado" onchange="onEmpleadoActividadChange()">
+            <option value="">Selecciona un empleado...</option>
+          </select>
+          <span class="pw-hint" id="aMontoInfo">Selecciona un empleado para ver el sueldo por tipo de actividad.</span>
         </div>
         <div class="field col-full">
           <label>Insumo utilizado</label>

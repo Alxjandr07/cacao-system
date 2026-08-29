@@ -52,16 +52,20 @@ function mostrarErrores(errores) {
 }
 
 // ── CARGA ───────────────────────────────────────────
-async function cargarProductos() {
+async function cargarProductos(conToast) {
   try {
     const res = await fetch(`${API}/productos`);
     if (!res.ok) throw new Error();
     productos = await res.json();
     filtrar();
     cargarAlertas();
+    if (conToast) showToast('Datos actualizados correctamente ✓');
   } catch {
-    document.getElementById('tablaBody').innerHTML =
-      '<tr><td colspan="7" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>';
+    if (conToast) showToast('No se pudieron actualizar los datos', 'error');
+    if (!productos.length) {
+      document.getElementById('tablaBody').innerHTML =
+        '<tr><td colspan="7" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>';
+    }
   }
 }
 
