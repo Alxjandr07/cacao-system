@@ -18,6 +18,11 @@
     .alerta-text .producto { font-weight:500; color:var(--text-dark); }
     .alerta-text .detalle { font-size:11px; color:var(--text-main); margin-top:1px; }
     .alerta-stock { font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:700; color:var(--red-text); white-space:nowrap; }
+    .dash-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:0.8px solid #f0f0f0; font-size:13px; }
+    .dash-row:last-child { border-bottom:none; }
+    .dash-row .dash-main { flex:1; font-weight:500; color:var(--text-dark); }
+    .dash-row .dash-sub { display:block; font-size:11px; color:var(--border-color); font-weight:400; margin-top:1px; }
+    .empty-dash { padding:20px; text-align:center; color:var(--border-color); font-size:13px; }
   </style>
 </head>
 <body>
@@ -35,6 +40,7 @@
     <div class="nav-section-label">GESTIÓN</div>
     <a class="nav-item" href="usuarios.html"><span class="nav-icon">👥</span> Usuarios y Roles</a>
     <a class="nav-item" href="personal.html"><span class="nav-icon">👤</span> Gestión de Personal</a>
+    <a class="nav-item" href="clientes.html"><span class="nav-icon">📋</span> Clientes</a>
     <a class="nav-item" href="proveedores.html"><span class="nav-icon">🚚</span> Proveedores</a>
     <div class="nav-section-label">PRODUCCIÓN</div>
     <a class="nav-item" href="inventario.html"><span class="nav-icon">📦</span> Inventario</a>
@@ -56,57 +62,18 @@
   <div class="topbar">
     <div>
       <div class="page-title">Dashboard</div>
-      <div class="page-sub">Resumen general del sistema</div>
+      <div class="page-sub" id="dashSub">Resumen general del sistema</div>
     </div>
     <button class="btn-outline" onclick="cargarDashboard()">↻ Actualizar</button>
   </div>
   <div class="content">
-
-    <!-- KPI CARDS -->
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-label">Total parcelas</div>
-        <div class="kpi-value" id="kpiParcelas">—</div>
-        <div class="kpi-sub">registradas en el sistema</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Actividades pendientes</div>
-        <div class="kpi-value" id="kpiPendientes">—</div>
-        <div class="kpi-sub">por completar</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Total cosechado</div>
-        <div class="kpi-value" id="kpiKg">—</div>
-        <div class="kpi-sub">kilogramos acumulados</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Alertas de stock</div>
-        <div class="kpi-value" id="kpiAlertas">—</div>
-        <div class="kpi-sub">productos con stock bajo</div>
-      </div>
-    </div>
-
-    <!-- DASHBOARD GRID -->
-    <div class="dashboard-grid">
-      <div class="dash-card" id="cardActividades">
-        <div class="dash-card-title">📋 Últimas actividades <span class="count" id="actCount"></span></div>
-        <div id="actividadesBody">
-          <div style="padding:20px;text-align:center;color:var(--border-color);font-size:13px">Cargando actividades...</div>
-        </div>
-      </div>
-
-      <div class="dash-card" id="cardAlertas">
-        <div class="dash-card-title">⚠️ Alertas de inventario <span class="count"></span></div>
-        <div id="alertasBody">
-          <div style="padding:20px;text-align:center;color:var(--border-color);font-size:13px">Cargando alertas...</div>
-        </div>
-      </div>
-    </div>
-
+    <div class="kpi-grid" id="kpiGrid"></div>
+    <div class="dashboard-grid" id="cardsGrid"></div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
+<script src="js/app.js"></script>
 <script src="js/dashboard.js"></script>
 </body>
 </html>

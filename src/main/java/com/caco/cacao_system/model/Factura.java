@@ -53,6 +53,6 @@ public class Factura {
     private String observaciones;
 
     @JsonManagedReference
-    @OneToMany(mappedBy = "factura", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "factura", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<DetalleFactura> detalles;
 }

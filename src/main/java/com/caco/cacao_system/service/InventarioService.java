@@ -65,6 +65,7 @@ public class InventarioService {
     public MovimientoInventario registrarMovimiento(Long productoId,
                                                     TipoMovimiento tipo,
                                                     BigDecimal cantidad,
+                                                    MotivoMovimiento motivoTipo,
                                                     String motivo) {
         ProductoInventario producto = obtenerPorId(productoId);
 
@@ -84,6 +85,7 @@ public class InventarioService {
                 .producto(producto)
                 .tipo(tipo)
                 .cantidad(cantidad)
+                .motivoTipo(motivoTipo)
                 .motivo(motivo)
                 .build();
 

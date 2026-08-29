@@ -1,7 +1,7 @@
 /* =====================================================
    CacaoGest — login.js
    ===================================================== */
-const API = 'http://localhost:8080/api/auth';
+const API = 'http://localhost:8081/api/auth';
 
 async function login() {
   const username = document.getElementById('username').value.trim();

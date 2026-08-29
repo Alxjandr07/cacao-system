@@ -1,7 +1,7 @@
 /* =====================================================
    CacaoGest — inventario.js (con validaciones)
    ===================================================== */
-const API = 'http://localhost:8080/api/inventario';
+const API = 'http://localhost:8081/api/inventario';
 let productos = [];
 
 // ── UTILS ──────────────────────────────────────────
@@ -223,13 +223,47 @@ async function eliminar(id) {
   } catch { showToast('Error al eliminar', 'error'); }
 }
 
+// ── MOTIVOS (catálogo) ───────────────────────────────
+const MOTIVOS = [
+  { tipo:'ENTRADA', valor:'COSECHA',              etiqueta:'Ingreso por cosecha' },
+  { tipo:'ENTRADA', valor:'COMPRA',               etiqueta:'Compra a proveedor' },
+  { tipo:'ENTRADA', valor:'DEVOLUCION',           etiqueta:'Devolución de cliente' },
+  { tipo:'ENTRADA', valor:'TRANSFERENCIA_ENTRADA',etiqueta:'Transferencia recibida' },
+  { tipo:'ENTRADA', valor:'AJUSTE_ENTRADA',       etiqueta:'Ajuste (entrada)' },
+  { tipo:'SALIDA',  valor:'VENTA',                etiqueta:'Venta a cliente' },
+  { tipo:'SALIDA',  valor:'MERMA',                etiqueta:'Merma o pérdida' },
+  { tipo:'SALIDA',  valor:'ROBO',                 etiqueta:'Pérdida por robo' },
+  { tipo:'SALIDA',  valor:'VENCIMIENTO',          etiqueta:'Producto vencido' },
+  { tipo:'SALIDA',  valor:'TRANSFERENCIA_SALIDA', etiqueta:'Transferencia enviada' },
+  { tipo:'SALIDA',  valor:'AJUSTE_SALIDA',        etiqueta:'Ajuste (salida)' },
+  { tipo:'CUALQUIERA', valor:'OTRO',              etiqueta:'Otro motivo' }
+];
+
+let motivoSeleccionado = null;
+
+function renderMotivos() {
+  const tipo   = document.querySelector('input[name=movTipo]:checked').value;
+  const cont   = document.getElementById('motivosContainer');
+  const filtro = MOTIVOS.filter(m => m.tipo === 'CUALQUIERA' || m.tipo === tipo);
+  cont.innerHTML = filtro.map(m => {
+    const sel = motivoSeleccionado === m.valor ? ' motivo-chip selected' : '';
+    return `<span class="motivo-chip${sel}" onclick="seleccionarMotivo('${m.valor}')">${m.etiqueta}</span>`;
+  }).join('');
+}
+
+function seleccionarMotivo(valor) {
+  motivoSeleccionado = valor;
+  renderMotivos();
+}
 // ── MODAL MOVIMIENTO ─────────────────────────────────
 function abrirMovimiento(id) {
   document.getElementById('movProductoId').value = id;
   document.getElementById('movCantidad').value   = '';
-  document.getElementById('movMotivo').value     = '';
+  document.getElementById('movNota').value       = '';
+  motivoSeleccionado = null;
   document.querySelector('input[name=movTipo][value=ENTRADA]').checked = true;
   updateMovLabel();
+  renderMotivos();
   document.getElementById('modalMovimiento').classList.add('open');
 }
 
@@ -239,6 +273,7 @@ function updateMovLabel() {
     'mov-type-label' + (val === 'ENTRADA' ? ' selected-entrada' : '');
   document.getElementById('labelSalida').className =
     'mov-type-label' + (val === 'SALIDA'  ? ' selected-salida'  : '');
+  renderMotivos();
 }
 
 async function guardarMovimiento() {
@@ -246,11 +281,17 @@ async function guardarMovimiento() {
   if (!cantidad || parseFloat(cantidad) <= 0) {
     showToast('Ingresa una cantidad válida mayor a 0', 'error'); return;
   }
+  if (!motivoSeleccionado) {
+    showToast('Selecciona un motivo', 'error'); return;
+  }
+  const mot = MOTIVOS.find(m => m.valor === motivoSeleccionado);
   const body = {
     productoId: document.getElementById('movProductoId').value,
     tipo:       document.querySelector('input[name=movTipo]:checked').value,
     cantidad,
-    motivo:     document.getElementById('movMotivo').value.trim()
+    motivoTipo: motivoSeleccionado,
+    motivo:     mot ? mot.etiqueta : motivoSeleccionado,
+    nota:       document.getElementById('movNota').value.trim()
   };
   try {
     const res  = await fetch(`${API}/movimientos`, {

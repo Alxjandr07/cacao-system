@@ -1,5 +1,5 @@
-const API = 'http://localhost:8080/api/personal';
-const API_USUARIOS = 'http://localhost:8080/api/usuarios';
+const API = 'http://localhost:8081/api/personal';
+const API_USUARIOS = 'http://localhost:8081/api/usuarios';
 let personal = [];
 
 const u = JSON.parse(localStorage.getItem('usuario') || '{}');

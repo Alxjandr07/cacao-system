@@ -74,6 +74,7 @@ public class CosechaService {
                 .producto(producto)
                 .tipo(TipoMovimiento.ENTRADA)
                 .cantidad(datos.getCantidadKg())
+                .motivoTipo(MotivoMovimiento.COSECHA)
                 .motivo("Cosecha " + numeroLote + " — " + parcela.getNombre())
                 .build();
         movimientoRepo.save(movimiento);

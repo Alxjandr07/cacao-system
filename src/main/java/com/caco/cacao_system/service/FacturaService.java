@@ -44,6 +44,13 @@ public class FacturaService {
         return facturaRepository.save(factura);
     }
 
+    public Factura cambiarEstado(Long id, EstadoFactura estado) {
+        Factura factura = facturaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Factura no encontrada"));
+        factura.setEstado(estado);
+        return facturaRepository.save(factura);
+    }
+
     public void eliminar(Long id) {
         facturaRepository.deleteById(id);
     }

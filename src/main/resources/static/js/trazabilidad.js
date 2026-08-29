@@ -1,7 +1,7 @@
 /* =====================================================
    CacaoGest — trazabilidad.js
    ===================================================== */
-const API = 'http://localhost:8080/api/trazabilidad';
+const API = 'http://localhost:8081/api/trazabilidad';
 let lotes = [];
 
 // ── USUARIO SIDEBAR ─────────────────────────────────

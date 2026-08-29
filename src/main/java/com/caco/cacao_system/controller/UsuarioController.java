@@ -4,6 +4,7 @@ import com.caco.cacao_system.model.Usuario;
 import com.caco.cacao_system.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,17 @@ import java.util.Map;
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
+    private final PasswordEncoder passwordEncoder;
+
+    private boolean esAdmin(String username) {
+        return usuarioService.buscarPorUsername(username)
+                .map(u -> "ADMIN".equalsIgnoreCase(u.getRol().getNombre()))
+                .orElse(false);
+    }
+
+    private boolean tieneRolAdmin(Usuario u) {
+        return u.getRol() != null && "ADMIN".equalsIgnoreCase(u.getRol().getNombre());
+    }
 
     @GetMapping
     public List<Usuario> listarTodos() {
@@ -28,17 +40,46 @@ public class UsuarioController {
     }
 
     @PostMapping
-    public ResponseEntity<Usuario> crear(@RequestBody Usuario usuario) {
+    public ResponseEntity<?> crear(@RequestBody Usuario usuario,
+                                   @RequestHeader(name = "X-Username", required = false) String operador) {
+        if (tieneRolAdmin(usuario) && !esAdmin(operador)) {
+            return ResponseEntity.status(403).body(Map.of("error", "No tienes permiso para crear usuarios administradores."));
+        }
         if (usuarioService.existeUsername(usuario.getUsername())) {
             return ResponseEntity.badRequest().build();
+        }
+        if (usuario.getPassword() != null && !usuario.getPassword().isBlank()) {
+            usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
         }
         return ResponseEntity.ok(usuarioService.guardar(usuario));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Usuario> actualizar(@PathVariable Long id, @RequestBody Usuario usuario) {
+    public ResponseEntity<?> actualizar(@PathVariable Long id, @RequestBody Usuario usuario,
+                                        @RequestHeader(name = "X-Username", required = false) String operador) {
+        if (!esAdmin(operador)) {
+            return usuarioService.buscarPorId(id)
+                    .map(existente -> {
+                        if (tieneRolAdmin(existente) || tieneRolAdmin(usuario)) {
+                            return ResponseEntity.<Usuario>status(403)
+                                    .body(null);
+                        }
+                        return actualizarUsuario(id, usuario);
+                    })
+                    .orElse(ResponseEntity.notFound().build());
+        }
+        return actualizarUsuario(id, usuario);
+    }
+
+    private ResponseEntity<Usuario> actualizarUsuario(Long id, Usuario usuario) {
         return usuarioService.buscarPorId(id)
                 .map(u -> {
+                    if (usuario.getPassword() != null && !usuario.getPassword().isBlank()
+                            && !usuario.getPassword().startsWith("$2")) {
+                        usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
+                    } else {
+                        usuario.setPassword(u.getPassword());
+                    }
                     usuario.setId(id);
                     return ResponseEntity.ok(usuarioService.guardar(usuario));
                 })
@@ -46,11 +87,15 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+    public ResponseEntity<?> eliminar(@PathVariable Long id,
+                                      @RequestHeader(name = "X-Username", required = false) String operador) {
         return usuarioService.buscarPorId(id)
                 .map(u -> {
+                    if (tieneRolAdmin(u) && !esAdmin(operador)) {
+                        return ResponseEntity.status(403).body(Map.of("error", "No tienes permiso para eliminar usuarios administradores."));
+                    }
                     usuarioService.eliminar(id);
-                    return ResponseEntity.ok().<Void>build();
+                    return ResponseEntity.ok(Map.of("success", true));
                 })
                 .orElse(ResponseEntity.notFound().build());
     }

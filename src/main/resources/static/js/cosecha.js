@@ -1,9 +1,9 @@
 /* =====================================================
    CacaoGest — cosecha.js (con validaciones)
    ===================================================== */
-const API_COSECHA    = 'http://localhost:8080/api/cosecha';
-const API_PARCELAS   = 'http://localhost:8080/api/cultivo/parcelas';
-const API_INVENTARIO = 'http://localhost:8080/api/inventario/productos';
+const API_COSECHA    = 'http://localhost:8081/api/cosecha';
+const API_PARCELAS   = 'http://localhost:8081/api/cultivo/parcelas';
+const API_INVENTARIO = 'http://localhost:8081/api/inventario/productos';
 
 let cosechas  = [];
 let parcelas  = [];

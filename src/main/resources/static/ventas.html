@@ -25,122 +25,7 @@
       padding-bottom: 10px;
       border-bottom: 0.8px solid #eee;
     }
-    .venta-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
     .col-span-2 { grid-column: 1 / -1; }
-    .col-full { grid-column: 1 / -1; }
-    .autocomplete-wrap { position: relative; }
-    .autocomplete-dropdown {
-      display: none;
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: #fff;
-      border: 0.8px solid var(--border-color);
-      border-radius: 7px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-      z-index: 100;
-      max-height: 220px;
-      overflow-y: auto;
-    }
-    .autocomplete-dropdown.open { display: block; }
-    .autocomplete-item {
-      padding: 10px 14px;
-      cursor: pointer;
-      border-bottom: 0.8px solid #eee;
-      transition: background 0.1s;
-    }
-    .autocomplete-item:last-child { border-bottom: none; }
-    .autocomplete-item:hover { background: #f0f7e6; }
-    .cli-name {
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 600;
-      font-size: 13px;
-      color: var(--text-dark);
-    }
-    .cli-meta {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px;
-      color: var(--text-main);
-      margin-top: 3px;
-      display: flex;
-      gap: 12px;
-    }
-    .required { color: var(--green); }
-    .stock-info {
-      background: var(--cream);
-      border: 0.8px solid var(--border-color);
-      border-radius: 7px;
-      padding: 9px 12px;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 13px;
-      color: var(--text-dark);
-    }
-    .stock-val { font-weight: 700; color: var(--green); }
-    .total-display {
-      background: var(--green);
-      border-radius: 10px;
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .total-label {
-      font-family: 'Inter', sans-serif;
-      font-weight: 600;
-      font-size: 13px;
-      color: rgba(255,255,255,0.8);
-    }
-    .total-amount {
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 700;
-      font-size: 28px;
-      color: #fff;
-      letter-spacing: -0.03em;
-    }
-    .warning-banner {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: var(--amber);
-      border: 0.8px solid var(--amber-border);
-      border-radius: 6px;
-      padding: 12px 16px;
-      font-size: 13px;
-      color: var(--amber-text);
-      margin-bottom: 16px;
-    }
-    .warning-banner.hidden { display: none; }
-    .spinner-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.4);
-      z-index: 500;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 16px;
-    }
-    .spinner-overlay.open { display: flex; }
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid rgba(255,255,255,0.3);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-    .spinner-text {
-      color: #fff;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -171,17 +56,15 @@
     <a class="nav-item" href="facturacion.html"><span class="nav-icon">🧾</span> Facturación y Reportes</a>
     <a class="nav-item" href="trazabilidad.html"><span class="nav-icon">🔍</span> Trazabilidad</a>
   </div>
-  <div class="sidebar-user" style="flex-direction:column; gap:10px;">
-    <div style="display:flex; align-items:center; gap:10px; width:100%;">
+  <div class="sidebar-user logout">
+    <div class="user-row">
       <div class="user-avatar">🌿</div>
       <div class="user-info">
         <div class="uname" id="sidebarNombre">Cargando...</div>
         <div class="urole" id="sidebarRol"></div>
       </div>
     </div>
-    <button onclick="cerrarSesion()" style="width:100%; background:rgba(255,255,255,0.1); border:0.8px solid rgba(255,255,255,0.2); border-radius:7px; padding:8px; color:#fff; font-family:'Inter',sans-serif; font-size:12px; cursor:pointer;">
-      🚪 Cerrar sesión
-    </button>
+    <button class="logout-btn" onclick="cerrarSesion()">→ Cerrar sesión</button>
   </div>
 </aside>
 
@@ -189,16 +72,34 @@
 <div class="main">
   <div class="topbar">
     <div>
-      <div class="page-title">Registro de Venta</div>
-      <div class="page-sub">Módulo de ventas y comercialización — Ciclo 2026</div>
+      <div class="page-title">Ventas</div>
+      <div class="page-sub">Registro de ventas — Ciclo 2026</div>
     </div>
   </div>
 
   <div class="content">
-
-    <div class="warning-banner hidden" id="stockWarning">
-      <span>⚠</span>
-      <span id="stockWarningMsg">Stock insuficiente.</span>
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Total Ventas</div>
+        <div class="kpi-value" id="kpiTotal">0</div>
+        <div class="kpi-sub">facturas emitidas</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Emitidas</div>
+        <div class="kpi-value" id="kpiEmitidas">0</div>
+        <div class="kpi-sub">pendientes de pago</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Pagadas</div>
+        <div class="kpi-value" id="kpiPagadas">0</div>
+        <div class="kpi-sub">completadas</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Anuladas</div>
+        <div class="kpi-value" id="kpiAnuladas">0</div>
+        <div class="kpi-sub">canceladas</div>
+      </div>
     </div>
 
     <form id="ventaForm" novalidate onsubmit="return false;">
@@ -206,34 +107,28 @@
       <!-- CLIENTE -->
       <div class="section-card">
         <div class="section-title">👤 Información del cliente</div>
-        <div class="venta-grid">
-          <div class="field col-span-2 autocomplete-wrap">
-            <label><span class="required">Cliente *</span></label>
-            <input type="text" id="clienteBusqueda" placeholder="Escribe al menos 3 caracteres para buscar..." autocomplete="off">
-            <input type="hidden" id="clienteId">
-            <div class="autocomplete-dropdown" id="clienteDropdown"></div>
+        <div class="form-grid">
+          <div class="field col-span-2">
+            <label>Cliente *</label>
+            <select id="fCliente" onchange="onClienteSeleccionado()">
+              <option value="">— Seleccionar cliente —</option>
+            </select>
           </div>
           <div class="field">
             <label>Cédula</label>
-            <input type="text" id="clienteCedula" placeholder="0000000000" maxlength="10">
+            <input type="text" id="fCedula" readonly>
           </div>
           <div class="field">
             <label>RUC</label>
-            <input type="text" id="clienteRuc" placeholder="0000000000001" maxlength="13">
+            <input type="text" id="fRuc" readonly>
           </div>
           <div class="field">
             <label>Teléfono</label>
-            <input type="text" id="clienteTelefono" placeholder="0999999999" maxlength="10">
-          </div>
-          <div class="field col-span-2">
-            <label>Dirección</label>
-            <input type="text" id="clienteDireccion" placeholder="Dirección del cliente" maxlength="200">
+            <input type="text" id="fTelefono" readonly>
           </div>
           <div class="field">
-            <label>Estado del cliente</label>
-            <div style="padding-top:4px;">
-              <span class="badge badge-disponible" id="clienteEstado">● Activo</span>
-            </div>
+            <label>Dirección</label>
+            <input type="text" id="fDireccion" readonly>
           </div>
         </div>
       </div>
@@ -241,96 +136,87 @@
       <!-- VENTA -->
       <div class="section-card">
         <div class="section-title">🧾 Información de la venta</div>
-        <div class="venta-grid">
-          <div class="field">
-            <label><span class="required">Fecha de venta *</span></label>
-            <input type="date" id="fechaVenta">
-          </div>
+        <div class="form-grid">
           <div class="field">
             <label>N° Factura</label>
             <input type="text" id="numeroFactura" placeholder="Auto-generado" readonly>
           </div>
           <div class="field">
-            <label>Estado</label>
-            <input type="text" id="estadoVenta" value="Emitida" readonly>
+            <label>Fecha</label>
+            <input type="date" id="fechaVenta">
           </div>
           <div class="field">
             <label>Usuario que registra</label>
             <input type="text" id="usuarioRegistra" readonly>
           </div>
+          <div class="field">
+            <label>Estado</label>
+            <input type="text" value="Emitida" readonly>
+          </div>
         </div>
       </div>
 
-      <!-- PRODUCTO -->
+      <!-- PRODUCTOS -->
       <div class="section-card">
-        <div class="section-title">📦 Producto</div>
-        <div class="venta-grid">
-          <div class="field">
-            <label><span class="required">Producto *</span></label>
-            <select id="productoSelect" onchange="onProductoChange()">
-              <option value="">Selecciona un producto...</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Categoría</label>
-            <input type="text" id="productoCategoria" placeholder="Cacao" readonly>
-          </div>
-          <div class="field">
-            <label><span class="required">Calidad del cacao *</span></label>
-            <select id="calidadSelect">
-              <option value="EXTRA">Extra</option>
-              <option value="PRIMERA" selected>Primera</option>
-              <option value="SEGUNDA">Segunda</option>
-              <option value="CACAO_EN_BABA">Cacao en baba</option>
-            </select>
-          </div>
-          <div class="field">
-            <label><span class="required">Precio por kilogramo ($) *</span></label>
-            <input type="text" id="precioKg" placeholder="0.00" oninput="onPrecioChange()">
-            <span class="field-error hidden" id="precioError">Ingrese un valor numérico válido.</span>
-          </div>
-          <div class="field">
-            <label>Stock disponible</label>
-            <div class="stock-info" id="stockInfo">
-              <span class="stock-val" id="stockValor">0</span> kg
-            </div>
-          </div>
-          <div class="field">
-            <label><span class="required">Cantidad (kg) *</span></label>
-            <input type="number" id="cantidadKg" placeholder="0" min="0" step="0.01" oninput="onCantidadChange()">
-          </div>
-          <div class="field col-full">
-            <div class="total-display">
-              <div class="total-label">Total estimado</div>
-              <div class="total-amount" id="totalEstimado">$ 0.00</div>
-            </div>
-          </div>
+        <div class="section-title">📦 Productos de la venta</div>
+        <div class="fact-lines-head">
+          <span class="fl-titulo">Detalle de productos (multi-producto)</span>
+          <button type="button" class="btn-outline" onclick="agregarLinea()">+ Agregar producto</button>
+        </div>
+        <table id="lineasTabla">
+          <thead>
+            <tr>
+              <th style="width:34%;">Producto</th>
+              <th style="width:16%;">Calidad</th>
+              <th style="width:11%;">Cant (kg)</th>
+              <th style="width:14%;">P. /kg</th>
+              <th style="width:13%;">Subtotal</th>
+              <th style="width:12%;">Stock</th>
+              <th style="width:4%;"></th>
+            </tr>
+          </thead>
+          <tbody id="lineasBody"></tbody>
+        </table>
+        <div class="fact-totales">
+          <div class="total-row"><span>Subtotal</span><span id="fSubtotal">$0.00</span></div>
+          <div class="total-row"><span>IVA (15%)</span><span id="fIva">$0.00</span></div>
+          <div class="total-row total-final"><span>Total</span><span id="fTotal">$0.00</span></div>
         </div>
       </div>
 
       <!-- BOTONES -->
       <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:8px;">
+        <button type="button" class="btn-outline" onclick="previsualizarRecibo()">👁 Previsualizar factura</button>
+        <button type="button" class="btn-outline" onclick="imprimirRecibo()">🖨 Imprimir</button>
         <button type="button" class="btn-cancel" onclick="limpiarFormulario()">Cancelar</button>
-        <button type="button" class="btn-primary" id="btnConfirmar" onclick="confirmarVenta()">✓ Confirmar venta</button>
+        <button type="button" class="btn-primary" onclick="confirmarVenta()">✓ Confirmar venta</button>
       </div>
 
     </form>
   </div>
 </div>
 
-<!-- SPINNER -->
-<div class="spinner-overlay" id="spinnerOverlay">
-  <div class="spinner"></div>
-  <div class="spinner-text">Registrando venta...</div>
+<!-- PANEL DE VISTA PREVIA / RECIBO -->
+<div class="recibo-overlay" id="reciboOverlay">
+  <div class="recibo-panel">
+    <div class="recibo-panel-head">
+      <span class="recibo-panel-titulo">Vista previa de la factura</span>
+      <div>
+        <button class="btn-outline" onclick="imprimirRecibo()">🖨 Imprimir</button>
+        <button class="recibo-close" onclick="cerrarRecibo()">✕</button>
+      </div>
+    </div>
+    <div class="recibo-panel-body">
+      <div class="recibo" id="reciboContenido"></div>
+    </div>
+  </div>
 </div>
 
+<!-- CONTENEDOR SOLO PARA IMPRESION -->
+<div id="reciboPrint" class="recibo-print"></div>
+
 <div class="toast" id="toast"></div>
-<script>
-function cerrarSesion() {
-  localStorage.removeItem('usuario');
-  window.location.href = 'login.html';
-}
-</script>
+<script src="js/app.js"></script>
 <script src="js/ventas.js"></script>
 </body>
 </html>
