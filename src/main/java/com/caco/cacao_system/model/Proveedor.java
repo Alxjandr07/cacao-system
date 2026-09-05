@@ -35,6 +35,10 @@ public class Proveedor {
     @Column(nullable = false, length = 50)
     private String tipo;
 
+    /** Suministros que provee, separados por coma: QUIMICOS, FERTILIZANTES, HERRAMIENTAS, PLANTAS_CACAO, OTROS */
+    @Column(length = 150)
+    private String suministros;
+
     @Column(nullable = false)
     private Boolean activo = true;
 }

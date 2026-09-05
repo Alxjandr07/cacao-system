@@ -2,8 +2,11 @@
    CacaoGest — cultivo.js (con validaciones + provincia/cantón)
    ===================================================== */
 const API = 'http://localhost:8081/api/cultivo';
+const API_PERSONAL = 'http://localhost:8081/api/personal';
 let parcelas    = [];
 let actividades = [];
+let pagosPorActividad = {};
+let sueldosEmpleadoSel = {};
 let tabActual   = 'parcelas';
 
 // ── DATOS ECUADOR ────────────────────────────────────
@@ -131,17 +134,90 @@ function switchTab(tab) {
   if (tab === 'actividades') cargarActividades();
 }
 
+// ── EMPLEADOS / PAGOS / SUELDOS (integración) ───────
+async function cargarEmpleados() {
+  try {
+    const res = await fetch(`${API_PERSONAL}`);
+    if (!res.ok) return;
+    const lista = await res.json();
+    const activos = (lista || []).filter(p => p.activo !== false);
+    const sel = document.getElementById('aEmpleado');
+    sel.innerHTML = '<option value="">Selecciona un empleado...</option>' +
+      activos.map(e =>
+        `<option value="${e.id}">${e.nombres} ${e.apellidos}</option>`).join('');
+  } catch {}
+}
+
+async function cargarPagos() {
+  pagosPorActividad = {};
+  try {
+    const res = await fetch(`${API_PERSONAL}/pagos`);
+    if (!res.ok) return;
+    const pagos = await res.json();
+    (pagos || []).forEach(p => {
+      pagosPorActividad[p.actividad?.id] = {
+        personalId: p.personal?.id,
+        nombres:    [p.personal?.nombres, p.personal?.apellidos].filter(Boolean).join(' ') || '—',
+        monto:      p.monto,
+        estadoPago: p.estadoPago
+      };
+    });
+  } catch {}
+}
+
+function pagoBadge(pg) {
+  if (!pg) return '<span class="badge badge-otro">Sin asignar</span>';
+  return pg.estadoPago === 'PAGADO'
+    ? '<span class="badge badge-pagado">✓ Pagado</span>'
+    : '<span class="badge badge-pago-pendiente">⏳ Pendiente</span>';
+}
+
+function actualizarMontoInfo() {
+  const tipo   = document.getElementById('aTipo').value;
+  const empId  = document.getElementById('aEmpleado').value;
+  const el     = document.getElementById('aMontoInfo');
+  if (!empId || !tipo) {
+    el.textContent = 'Selecciona un empleado para ver el sueldo por tipo de actividad.';
+    return;
+  }
+  const valor = sueldosEmpleadoSel[tipo];
+  el.textContent = valor != null
+    ? `Sueldo del empleado para ${tipo}: $${Number(valor).toFixed(2)}`
+    : `⚠ No hay sueldo configurado para ${tipo}. Configúralo en Gestión de Personal.`;
+}
+
+async function onEmpleadoActividadChange() {
+  const empId = document.getElementById('aEmpleado').value;
+  sueldosEmpleadoSel = {};
+  if (!empId) { actualizarMontoInfo(); return; }
+  try {
+    const res = await fetch(`${API_PERSONAL}/${empId}/sueldos`);
+    const data = res.ok ? await res.json() : { sueldos: [] };
+    (data.sueldos || []).forEach(s => { sueldosEmpleadoSel[s.tipo] = s.sueldoDiario; });
+    actualizarMontoInfo();
+  } catch { actualizarMontoInfo(); }
+}
+
+function ontipoActividadChange() { actualizarMontoInfo(); }
+
 // ── PARCELAS ────────────────────────────────────────
-async function cargarParcelas() {
+async function cargarParcelas(conToast) {
   try {
     const res = await fetch(`${API}/parcelas`);
+    if (!res.ok) throw new Error();
     parcelas  = await res.json();
     renderParcelas(parcelas);
     poblarSelectParcelas();
     cargarVencidas();
+    cargarEmpleados();
+    cargarPagos();
+    if (conToast) showToast('Datos actualizados correctamente ✓');
   } catch {
-    document.getElementById('parcelasGrid').innerHTML =
-      '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--border-color)">⚠ No se pudo conectar</div>';
+    if (conToast) showToast('No se pudieron actualizar los datos', 'error');
+    if (!parcelas.length) {
+      document.getElementById('parcelasGrid').innerHTML =
+        '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--border-color)">⚠ No se pudo conectar</div>';
+    }
   }
 }
 
@@ -154,7 +230,7 @@ function renderParcelas(lista) {
   grid.innerHTML = lista.map(p => `
     <div class="parcela-card">
       <div class="parcela-name">🌿 ${p.nombre}</div>
-      <div class="parcela-meta">📍 ${p.ubicacion}</div>
+      <div class="parcela-meta">📍 ${p.ubicacion}${p.direccion ? ' — ' + p.direccion : ''}</div>
       ${p.hectareas    ? `<div class="parcela-meta">📐 ${p.hectareas} ha</div>` : ''}
       ${p.variedadCacao? `<div class="parcela-meta">🫘 ${p.variedadCacao}</div>` : ''}
       ${p.responsable  ? `<div class="parcela-meta">👤 ${p.responsable}</div>` : ''}
@@ -220,23 +296,28 @@ function filtrarActividades() {
 function renderActividades(lista) {
   const tbody = document.getElementById('actividadesBody');
   if (!lista.length) {
-    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No hay actividades registradas</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No hay actividades registradas</td></tr>';
     return;
   }
-  tbody.innerHTML = lista.map(a => `
+  tbody.innerHTML = lista.map(a => {
+    const pg = pagosPorActividad[a.id];
+    return `
     <tr>
       <td class="name">${a.parcela?.nombre || '—'}</td>
       <td>${tipoBadge(a.tipo)}</td>
-      <td>${a.responsable || '—'}</td>
+      <td>${pg?.nombres || '—'}</td>
+      <td class="mono">${pg ? '$' + Number(pg.monto).toFixed(2) : '—'}</td>
+      <td>${pagoBadge(pg)}</td>
       <td class="mono">${formatFecha(a.fechaProgramada)}</td>
       <td class="mono">${formatFecha(a.fechaRealizada)}</td>
-      <td style="max-width:180px;font-size:11px;color:var(--text-main)">${a.insumosUsados || '—'}</td>
+      <td style="max-width:150px;font-size:11px;color:var(--text-main)">${a.insumosUsados || '—'}</td>
       <td>${estadoBadge(a.estado)}</td>
       <td>
         <button class="action-btn" onclick="abrirEditarActividad(${a.id})">✎</button>
         <button class="action-btn danger" onclick="eliminarActividad(${a.id})">✕</button>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 function verHistorial(parcelaId) {
@@ -251,7 +332,7 @@ function verHistorial(parcelaId) {
 function abrirModalParcela() {
   document.getElementById('modalParcelaTitulo').textContent = 'Nueva parcela';
   document.getElementById('parcelaId').value = '';
-  ['pNombre','pVariedad','pResponsable','pObservaciones'].forEach(id =>
+  ['pNombre','pDireccion','pVariedad','pResponsable','pObservaciones'].forEach(id =>
     document.getElementById(id).value = '');
   document.getElementById('pHectareas').value = '';
   poblarProvincias();
@@ -265,6 +346,7 @@ function abrirEditarParcela(id) {
   document.getElementById('modalParcelaTitulo').textContent = 'Editar parcela';
   document.getElementById('parcelaId').value      = p.id;
   document.getElementById('pNombre').value        = p.nombre;
+  document.getElementById('pDireccion').value     = p.direccion    || '';
   document.getElementById('pHectareas').value     = p.hectareas || '';
   document.getElementById('pVariedad').value      = p.variedadCacao  || '';
   document.getElementById('pResponsable').value   = p.responsable    || '';
@@ -287,6 +369,7 @@ async function guardarParcela() {
   const nombre    = document.getElementById('pNombre').value.trim();
   const provincia = document.getElementById('pProvincia').value;
   const canton    = document.getElementById('pCanton').value;
+  const direccion = document.getElementById('pDireccion').value.trim();
   const hectareas = document.getElementById('pHectareas').value;
   const responsable = document.getElementById('pResponsable').value.trim();
   let valido = true;
@@ -312,6 +395,7 @@ async function guardarParcela() {
   const body = {
     nombre,
     ubicacion:     `${provincia}, ${canton}`,
+    direccion:     direccion || null,
     hectareas:     hectareas ? parseFloat(hectareas) : null,
     variedadCacao: document.getElementById('pVariedad').value.trim()      || null,
     responsable:   responsable || null,
@@ -345,8 +429,10 @@ function abrirModalActividad() {
   document.getElementById('aEstado').value      = 'PENDIENTE';
   document.getElementById('aFechaProg').value   = '';
   document.getElementById('aFechaReal').value   = '';
-  document.getElementById('aResponsable').value = '';
+  document.getElementById('aEmpleado').value    = '';
   document.getElementById('aObservaciones').value = '';
+  sueldosEmpleadoSel = {};
+  document.getElementById('aMontoInfo').textContent = 'Selecciona un empleado para ver el sueldo por tipo de actividad.';
   poblarInsumos();
   limpiarErrores('modalActividad');
   document.getElementById('modalActividad').classList.add('open');
@@ -362,8 +448,20 @@ function abrirEditarActividad(id) {
   document.getElementById('aEstado').value         = a.estado;
   document.getElementById('aFechaProg').value      = a.fechaProgramada || '';
   document.getElementById('aFechaReal').value      = a.fechaRealizada  || '';
-  document.getElementById('aResponsable').value    = a.responsable     || '';
   document.getElementById('aObservaciones').value  = a.observaciones   || '';
+  const pg = pagosPorActividad[a.id];
+  sueldosEmpleadoSel = {};
+  document.getElementById('aEmpleado').value = pg?.personalId != null ? String(pg.personalId) : '';
+  document.getElementById('aMontoInfo').textContent = 'Selecciona un empleado para ver el sueldo por tipo de actividad.';
+  if (pg?.personalId != null) {
+    fetch(`${API_PERSONAL}/${pg.personalId}/sueldos`)
+      .then(r => r.ok ? r.json() : { sueldos: [] })
+      .then(data => {
+        (data.sueldos || []).forEach(s => sueldosEmpleadoSel[s.tipo] = s.sueldoDiario);
+        actualizarMontoInfo();
+      })
+      .catch(() => {});
+  }
   poblarInsumos();
   if (a.insumosUsados) document.getElementById('aInsumos').value = a.insumosUsados;
   limpiarErrores('modalActividad');
@@ -375,7 +473,8 @@ async function guardarActividad() {
   const parcelaId   = document.getElementById('aParcelaId').value;
   const fechaProg   = document.getElementById('aFechaProg').value;
   const fechaReal   = document.getElementById('aFechaReal').value;
-  const responsable = document.getElementById('aResponsable').value.trim();
+  const empleadoId  = document.getElementById('aEmpleado').value;
+  const tipo        = document.getElementById('aTipo').value;
   const hoy         = new Date().toISOString().split('T')[0];
   let valido = true;
 
@@ -388,18 +487,18 @@ async function guardarActividad() {
   if (fechaReal && fechaReal > hoy) {
     marcarError('aFechaReal', 'La fecha realizada no puede ser futura'); valido = false;
   }
-  if (responsable && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(responsable)) {
-    marcarError('aResponsable', 'Solo letras y espacios'); valido = false;
+  if (empleadoId && sueldosEmpleadoSel[tipo] == null) {
+    marcarError('aEmpleado', `Configura el sueldo del empleado para ${tipo} en Gestión de Personal.`);
+    valido = false;
   }
   if (!valido) return;
 
   const id   = document.getElementById('actividadId').value;
   const body = {
-    tipo:            document.getElementById('aTipo').value,
+    tipo:            tipo,
     estado:          document.getElementById('aEstado').value,
     fechaProgramada: fechaProg,
     fechaRealizada:  fechaReal || null,
-    responsable:     responsable || null,
     insumosUsados:   document.getElementById('aInsumos').value || null,
     observaciones:   document.getElementById('aObservaciones').value.trim() || null
   };
@@ -409,6 +508,17 @@ async function guardarActividad() {
     const res  = await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
     const data = await res.json();
     if (!res.ok) { showToast('Error: ' + (data.error || 'Verifica los datos'), 'error'); return; }
+    if (!id && empleadoId && data.id) {
+      const asg = await fetch(`${API_PERSONAL}/pagos`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ personalId: +empleadoId, actividadId: data.id })
+      });
+      if (!asg.ok) {
+        const e = await asg.json();
+        showToast('Actividad creada, pero no se pudo asignar el empleado: ' + (e.error || ''), 'error');
+      }
+    }
     cerrarModal('modalActividad');
     showToast(id ? 'Actividad actualizada ✓' : 'Actividad creada ✓');
     cargarActividades();

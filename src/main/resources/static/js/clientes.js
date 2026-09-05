@@ -23,15 +23,19 @@ function setEstadoValue(activo) {
   });
 }
 
-async function cargarClientes() {
+async function cargarClientes(conToast) {
   try {
     const res = await fetch(API);
     if (!res.ok) throw new Error();
     clientes = await res.json();
     filtrar();
+    if (conToast) showToast('Datos actualizados correctamente ✓');
   } catch {
-    document.getElementById('tablaBody').innerHTML =
-      '<tr><td colspan="8" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>';
+    if (conToast) showToast('No se pudieron actualizar los datos', 'error');
+    if (!clientes.length) {
+      document.getElementById('tablaBody').innerHTML =
+        '<tr><td colspan="8" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>';
+    }
   }
 }
 

@@ -15,6 +15,7 @@ public class CultivoService {
 
     private final ParcelaRepository parcelaRepo;
     private final ActividadMantenimientoRepository actividadRepo;
+    private final ActividadPersonalRepository actividadPersonalRepo;
 
     // ── PARCELAS ───────────────────────────────────────────
 
@@ -39,6 +40,7 @@ public class CultivoService {
         Parcela existente = obtenerParcelaPorId(id);
         existente.setNombre(datos.getNombre());
         existente.setUbicacion(datos.getUbicacion());
+        existente.setDireccion(datos.getDireccion());
         existente.setHectareas(datos.getHectareas());
         existente.setVariedadCacao(datos.getVariedadCacao());
         existente.setResponsable(datos.getResponsable());
@@ -97,6 +99,7 @@ public class CultivoService {
     }
 
     public void eliminarActividad(Long id) {
+        actividadPersonalRepo.deleteByActividadId(id);
         actividadRepo.deleteById(id);
     }
 }

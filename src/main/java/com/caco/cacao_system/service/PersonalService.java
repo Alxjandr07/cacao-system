@@ -1,7 +1,9 @@
 package com.caco.cacao_system.service;
 
 import com.caco.cacao_system.model.Personal;
+import com.caco.cacao_system.repository.ActividadPersonalRepository;
 import com.caco.cacao_system.repository.PersonalRepository;
+import com.caco.cacao_system.repository.SueldoActividadRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -12,6 +14,8 @@ import java.util.Optional;
 public class PersonalService {
 
     private final PersonalRepository personalRepository;
+    private final ActividadPersonalRepository actividadPersonalRepository;
+    private final SueldoActividadRepository sueldoActividadRepository;
 
     public List<Personal> listarTodos() {
         return personalRepository.findAll();
@@ -50,6 +54,8 @@ public class PersonalService {
     }
 
     public void eliminar(Long id) {
+        actividadPersonalRepository.deleteByPersonalId(id);
+        sueldoActividadRepository.deleteByPersonalId(id);
         personalRepository.deleteById(id);
     }
 }

@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +55,29 @@ public class CosechaController {
             @RequestBody RegistroCosecha datos) {
         try {
             return ResponseEntity.ok(cosechaService.registrarCosecha(parcelaId, productoId, datos));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/parcela/{parcelaId}/nuevo-producto")
+    public ResponseEntity<?> registrarConNuevoProducto(
+            @PathVariable Long parcelaId,
+            @RequestBody Map<String, Object> body) {
+        try {
+            String nombreProducto = String.valueOf(body.get("nombreProducto"));
+            RegistroCosecha datos = new RegistroCosecha();
+            datos.setFechaCosecha(LocalDate.parse(String.valueOf(body.get("fechaCosecha"))));
+            datos.setCantidadKg(new BigDecimal(String.valueOf(body.get("cantidadKg"))));
+            datos.setCalidad(CalidadGrano.valueOf(String.valueOf(body.get("calidad"))));
+            datos.setResponsable((String) body.get("responsable"));
+            datos.setObservaciones((String) body.get("observaciones"));
+
+            BigDecimal stockMinimo = body.get("stockMinimo") != null
+                    ? new BigDecimal(String.valueOf(body.get("stockMinimo"))) : null;
+
+            return ResponseEntity.ok(cosechaService
+                    .registrarCosechaConNuevoProducto(parcelaId, nombreProducto, stockMinimo, datos));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

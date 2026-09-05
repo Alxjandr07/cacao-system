@@ -23,6 +23,8 @@ public class Parcela {
     @Column(nullable = false)
     private String ubicacion; // Ej: "Quevedo, Los Ríos"
 
+    private String direccion; // Dirección específica o referencia de la parcela
+
     private BigDecimal hectareas;
 
     private String variedadCacao; // Ej: "CCN-51", "Nacional Fino de Aroma"

@@ -108,6 +108,8 @@ td.lote { font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:700
 .badge-primera { background:var(--blue-badge); color:var(--blue-text); }
 .badge-segunda { background:var(--amber); color:var(--amber-text); }
 .badge-baba { background:#fce7f3; color:#9d174d; }
+.badge-pagado { background:#d1fae5; color:#065f46; }
+.badge-pago-pendiente { background:#fef3c7; color:#92400e; }
 
 /* ACTION BTNS */
 .action-btn { background:#fff; border:0.8px solid var(--text-main); border-radius:5px; padding:4px 10px; font-size:11px; color:var(--text-main); cursor:pointer; margin-right:4px; font-family:'Inter',sans-serif; transition:all 0.15s; }
@@ -201,6 +203,13 @@ td.lote { font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:700
 /* MODAL GRANDE (facturación) */
 .modal-lg { max-width: 860px; }
 .form-grid.fact-cliente { margin-top: 6px; }
+
+/* CHECKBOX GRUPO (suministros del proveedor) */
+.checkbox-group { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+.checkbox-option { display:flex; align-items:center; gap:6px; padding:8px 12px; border:0.8px solid var(--border-color); border-radius:7px; cursor:pointer; font-size:13px; color:var(--text-main); font-family:'DM Sans',sans-serif; transition:all 0.15s; }
+.checkbox-option:hover { border-color:var(--primary); background:#f2f6f0; }
+.checkbox-option input { accent-color: var(--green); }
+.checkbox-option:has(input:checked) { border-color:var(--green); background:#f0f7e6; color:var(--green-dark); font-weight:600; }
 
 /* LÍNEAS DE FACTURA */
 .fact-lines { margin-top: 18px; }

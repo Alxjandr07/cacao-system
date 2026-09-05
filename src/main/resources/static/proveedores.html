@@ -59,15 +59,15 @@
         <option value="true">Activos</option>
         <option value="false">Inactivos</option>
       </select>
-      <button class="btn-outline" onclick="cargarProveedores()">↻ Actualizar</button>
+      <button class="btn-outline" onclick="cargarProveedores(true)">↻ Actualizar</button>
     </div>
     <div class="table-wrap">
       <table>
         <thead>
-          <tr><th>RUC</th><th>Razón Social</th><th>Representante</th><th>Teléfono</th><th>Ciudad</th><th>Tipo</th><th>Estado</th><th>Acción</th></tr>
+          <tr><th>RUC</th><th>Razón Social</th><th>Representante</th><th>Teléfono</th><th>Ciudad</th><th>Tipo</th><th>Suministros</th><th>Estado</th><th>Acción</th></tr>
         </thead>
         <tbody id="tablaBody">
-          <tr><td colspan="8" class="empty-state">Cargando proveedores...</td></tr>
+          <tr><td colspan="9" class="empty-state">Cargando proveedores...</td></tr>
         </tbody>
       </table>
     </div>
@@ -123,6 +123,16 @@
           <label>Ciudad *</label>
           <input type="text" id="pCiudad" placeholder="Ciudad" maxlength="100">
         </div>
+        <div class="field col-full">
+          <label>Suministros que provee <span style="font-weight:400;text-transform:none;color:var(--border-color)">(opcional — se auto-crean en Inventario)</span></label>
+          <div class="checkbox-group" id="pSuministrosGroup">
+            <label class="checkbox-option"><input type="checkbox" value="QUIMICOS"> 🧪 Químicos</label>
+            <label class="checkbox-option"><input type="checkbox" value="FERTILIZANTES"> 🌿 Fertilizantes</label>
+            <label class="checkbox-option"><input type="checkbox" value="HERRAMIENTAS"> 🔧 Herramientas</label>
+            <label class="checkbox-option"><input type="checkbox" value="PLANTAS_CACAO"> 🌱 Plantas de cacao</label>
+            <label class="checkbox-option"><input type="checkbox" value="OTROS"> 📦 Otros</label>
+          </div>
+        </div>
         <div class="field">
           <label>Estado</label>
           <div class="estado-toggle">
@@ -139,6 +149,48 @@
     <div class="modal-footer">
       <button class="btn-cancel" onclick="cerrarModal('modalProveedor')">Cancelar</button>
       <button class="btn-primary" onclick="guardarProveedor()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL INSUMOS DEL PROVEEDOR -->
+<div class="modal-overlay" id="modalInsumos">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title" id="insumosTitulo">Insumos del proveedor</span>
+      <button class="modal-close" onclick="cerrarModal('modalInsumos')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid" style="margin-bottom:16px">
+        <div class="field"><label>Nombre del insumo *</label><input type="text" id="iNombre" placeholder="Ej: Glifosato 4L"></div>
+        <div class="field">
+          <label>Unidad</label>
+          <select id="iUnidad">
+            <option value="unidades">unidades</option>
+            <option value="kg">kg</option>
+            <option value="litros">litros</option>
+            <option value="bolsas">bolsas</option>
+            <option value="plantas">plantas</option>
+          </select>
+        </div>
+        <div class="field"><label>Stock mínimo</label><input type="number" id="iStockMin" value="0" min="0" step="1"></div>
+        <div class="field" style="align-self:end">
+          <button class="btn-primary" onclick="guardarInsumo()">➕ Agregar a Inventario</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Insumo</th><th>Unidad</th><th>Stock mín.</th><th>Stock en inventario</th><th>Acción</th></tr>
+          </thead>
+          <tbody id="insumosBody">
+            <tr><td colspan="5" class="empty-state">Cargando insumos...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="cerrarModal('modalInsumos')">Cerrar</button>
     </div>
   </div>
 </div>

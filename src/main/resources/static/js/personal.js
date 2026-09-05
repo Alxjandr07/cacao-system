@@ -24,15 +24,20 @@ function setEstadoValue(activo) {
   });
 }
 
-async function cargarPersonal() {
+async function cargarPersonal(conToast) {
   try {
     const res = await fetch(API);
     if (!res.ok) throw new Error();
     personal = await res.json();
     filtrar();
+    poblarSelectoresSueldos();
+    if (conToast) showToast('Datos actualizados correctamente ✓');
   } catch {
-    document.getElementById('tablaBody').innerHTML =
-      '<tr><td colspan="9" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>';
+    if (conToast) showToast('No se pudieron actualizar los datos', 'error');
+    if (!personal.length) {
+      document.getElementById('tablaBody').innerHTML =
+        '<tr><td colspan="9" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>';
+    }
   }
 }
 
@@ -279,6 +284,166 @@ function generarReporte() {
   const ventana = window.open('', '_blank');
   ventana.document.write(html);
   ventana.document.close();
+}
+
+// ── SUELDOS Y PAGOS ──────────────────────────────────
+
+const API_SUELDOS = 'http://localhost:8081/api/personal';
+
+function switchPersonalTab(tab) {
+  document.getElementById('vistaEmpleados').style.display = tab === 'empleados' ? '' : 'none';
+  document.getElementById('vistaSueldos').style.display   = tab === 'sueldos' ? '' : 'none';
+  document.getElementById('tabEmpleados').className = 'tab' + (tab === 'empleados' ? ' active' : '');
+  document.getElementById('tabSueldos').className   = 'tab' + (tab === 'sueldos' ? ' active' : '');
+  const btn = document.getElementById('btnNuevoEmpleado');
+  if (btn) btn.style.display = tab === 'empleados' ? '' : 'none';
+  if (tab === 'sueldos') {
+    poblarSelectoresSueldos();
+    if (document.getElementById('sEmpleado').value) onSueldoEmpleadoChange();
+    cargarPagos();
+  }
+}
+
+function poblarSelectoresSueldos() {
+  const opc = personal.map(p => `<option value="${p.id}">${p.nombres} ${p.apellidos}</option>`).join('');
+  const selEmp = document.getElementById('sEmpleado');
+  const empPrev = selEmp.value;
+  selEmp.innerHTML = '<option value="">Selecciona...</option>' + opc;
+  selEmp.value = empPrev;
+  const filtroPago = document.getElementById('filtroPago');
+  const filtroPrev = filtroPago.value;
+  filtroPago.innerHTML = '<option value="">Todos los empleados</option>' + opc;
+  filtroPago.value = filtroPrev;
+}
+
+async function onSueldoEmpleadoChange() {
+  const empId = document.getElementById('sEmpleado').value;
+  if (!empId) {
+    document.getElementById('tablaSueldos').innerHTML =
+      '<tr><td colspan="4" class="empty-state">Selecciona un empleado para ver sus sueldos.</td></tr>';
+    document.getElementById('sTotalPendiente').textContent = '$0.00';
+    document.getElementById('sTotalPagado').textContent = '$0.00';
+    return;
+  }
+  try {
+    const res = await fetch(`${API_SUELDOS}/${empId}/sueldos`);
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    renderSueldos(data.sueldos || []);
+    document.getElementById('sTotalPendiente').textContent = '$' + Number(data.pendiente || 0).toFixed(2);
+    document.getElementById('sTotalPagado').textContent   = '$' + Number(data.pagado || 0).toFixed(2);
+  } catch {
+    showToast('Error al cargar los sueldos', 'error');
+  }
+}
+
+function renderSueldos(sueldos) {
+  const tbody = document.getElementById('tablaSueldos');
+  if (!sueldos.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No tiene sueldos configurados. Agrega uno abajo.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = sueldos.map(s => `
+    <tr>
+      <td class="name">${(s.personal?.nombres || '') + ' ' + (s.personal?.apellidos || '')}</td>
+      <td>${s.tipo}</td>
+      <td class="mono">$${Number(s.sueldoDiario).toFixed(2)}</td>
+      <td><button class="action-btn danger" onclick="eliminarSueldo(${s.id})">✕ Quitar</button></td>
+    </tr>`).join('');
+}
+
+async function guardarSueldoEmpleado() {
+  const empId = document.getElementById('sEmpleado').value;
+  const tipo  = document.getElementById('sTipo').value;
+  const sueldo = document.getElementById('sSueldo').value;
+  if (!empId) { showToast('Selecciona un empleado.', 'error'); return; }
+  if (sueldo === '' || isNaN(parseFloat(sueldo)) || parseFloat(sueldo) < 0) {
+    showToast('Ingresa un sueldo diario válido.', 'error'); return;
+  }
+  try {
+    const res = await fetch(`${API_SUELDOS}/${empId}/sueldos`, {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ tipo, sueldoDiario: parseFloat(sueldo) })
+    });
+    if (!res.ok) { const e = await res.json(); showToast(e.error || 'Error', 'error'); return; }
+    showToast('Sueldo guardado ✓');
+    document.getElementById('sSueldo').value = '';
+    onSueldoEmpleadoChange();
+  } catch { showToast('Error al guardar el sueldo', 'error'); }
+}
+
+async function eliminarSueldo(id) {
+  if (!confirm('¿Quitar este sueldo del empleado?')) return;
+  try {
+    const res = await fetch(`${API_SUELDOS}/sueldos/${id}`, { method: 'DELETE' });
+    if (!res.ok) { showToast('Error al eliminar sueldo', 'error'); return; }
+    showToast('Sueldo eliminado ✓');
+    onSueldoEmpleadoChange();
+  } catch { showToast('Error al eliminar sueldo', 'error'); }
+}
+
+async function cargarPagos(conToast) {
+  const personalId = document.getElementById('filtroPago').value;
+  try {
+    const url = `${API_SUELDOS}/pagos` + (personalId ? `?personalId=${personalId}` : '');
+    const res = await fetch(url);
+    if (!res.ok) throw new Error();
+    renderPagos(await res.json());
+    if (conToast) showToast('Datos actualizados correctamente ✓');
+  } catch {
+    if (conToast) showToast('No se pudieron actualizar los datos', 'error');
+    else document.getElementById('tablaPagos').innerHTML =
+      '<tr><td colspan="7" class="empty-state">⚠ No se pudo cargar</td></tr>';
+  }
+}
+
+function renderPagos(pagos) {
+  const tbody = document.getElementById('tablaPagos');
+  if (!pagos.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Sin asignaciones/pagos registrados.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = pagos.map(p => `
+    <tr>
+      <td class="name">${p.personal?.nombres || '—'} ${p.personal?.apellidos || ''}</td>
+      <td>${p.actividad?.parcela?.nombre || '—'}</td>
+      <td>${p.actividad?.tipo || '—'}</td>
+      <td class="mono">$${Number(p.monto).toFixed(2)}</td>
+      <td>${p.estadoPago === 'PAGADO' ? '<span class="badge badge-pagado">✓ Pagado</span>' : '<span class="badge badge-pago-pendiente">⏳ Pendiente</span>'}</td>
+      <td class="mono">${p.fechaPago ? formatearFecha(p.fechaPago) : '—'}</td>
+      <td>
+        ${p.estadoPago === 'PAGADO'
+          ? '<button class="action-btn" onclick="marcarPago(' + p.id + ',\'PENDIENTE\')">↺ Marcar pendiente</button>'
+          : '<button class="action-btn ok" onclick="marcarPago(' + p.id + ',\'PAGADO\')">✓ Marcar pagado</button>'}
+        <button class="action-btn danger" onclick="eliminarPago(${p.id})">✕</button>
+      </td>
+    </tr>`).join('');
+}
+
+async function marcarPago(id, estado) {
+  try {
+    const res = await fetch(`${API_SUELDOS}/pagos/${id}/estado`, {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ estado })
+    });
+    if (!res.ok) { const e = await res.json(); showToast(e.error || 'Error', 'error'); return; }
+    showToast(estado === 'PAGADO' ? 'Pago marcado como pagado ✓' : 'Pago marcado como pendiente');
+    cargarPagos();
+    if (document.getElementById('sEmpleado').value) onSueldoEmpleadoChange();
+  } catch { showToast('Error al actualizar el pago', 'error'); }
+}
+
+async function eliminarPago(id) {
+  if (!confirm('¿Quitar esta asignación de empleado a la actividad?')) return;
+  try {
+    const res = await fetch(`${API_SUELDOS}/pagos/${id}`, { method: 'DELETE' });
+    if (!res.ok) { showToast('Error al eliminar', 'error'); return; }
+    showToast('Asignación eliminada ✓');
+    cargarPagos();
+    if (document.getElementById('sEmpleado').value) onSueldoEmpleadoChange();
+  } catch { showToast('Error al eliminar', 'error'); }
 }
 
 // ── CAMBIAR CONTRASEÑA ────────────────────────────────

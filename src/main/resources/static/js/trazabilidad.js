@@ -35,16 +35,20 @@ function estadoBadge(estado) {
 }
 
 // ── CARGA ───────────────────────────────────────────
-async function cargarLotes() {
+async function cargarLotes(conToast) {
   try {
     const res = await fetch(API);
     if (!res.ok) throw new Error();
     lotes = await res.json();
     filtrar();
     actualizarKPIs();
+    if (conToast) showToast('Datos actualizados correctamente ✓');
   } catch {
-    document.getElementById('tablaBody').innerHTML =
-      '<tr><td colspan="10" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>';
+    if (conToast) showToast('No se pudieron actualizar los datos', 'error');
+    if (!lotes.length) {
+      document.getElementById('tablaBody').innerHTML =
+        '<tr><td colspan="10" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>';
+    }
   }
 }
 

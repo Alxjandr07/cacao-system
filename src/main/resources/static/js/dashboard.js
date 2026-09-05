@@ -5,7 +5,7 @@
 function showToast(msg, type) {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.className = `toast ${type} show`;
+  t.className = `toast ${type || 'success'} show`;
   setTimeout(() => t.className = 'toast', 3000);
 }
 
@@ -223,7 +223,7 @@ const WIDGETS = [
   }
 ];
 
-async function cargarDashboard() {
+async function cargarDashboard(conToast) {
   const kpiGrid = document.getElementById('kpiGrid');
   const cardsGrid = document.getElementById('cardsGrid');
   const sub = document.getElementById('dashSub');
@@ -272,9 +272,11 @@ async function cargarDashboard() {
       </div>
     `);
     cardsGrid.innerHTML = cardHTML.join('');
+    if (conToast) showToast('Datos actualizados correctamente ✓');
   } catch (e) {
     console.error('Error al cargar dashboard:', e);
-    showToast('Error al cargar el dashboard', 'error');
+    if (conToast) showToast('No se pudieron actualizar los datos', 'error');
+    else showToast('Error al cargar el dashboard', 'error');
     kpiGrid.innerHTML = '';
     cardsGrid.innerHTML = '';
   }
