@@ -31,3 +31,13 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Playwright / Node ###
+node_modules/
+playwright-report/
+test-results/
+blob-report/
+playwright/.cache/
+
+### Logs ###
+*.log
