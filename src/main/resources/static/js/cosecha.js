@@ -9,6 +9,8 @@ let cosechas  = [];
 let parcelas  = [];
 let productos = [];
 
+Pag.registrar('cosecha', 'tablaBody', 'pag-tablaBody');
+
 // ── UTILS ──────────────────────────────────────────
 function showToast(msg, type = 'success') {
   const t = document.getElementById('toast');
@@ -100,8 +102,7 @@ async function cargarCosechas(conToast) {
   } catch {
     if (conToast) showToast('No se pudieron actualizar los datos', 'error');
     if (!cosechas.length) {
-      document.getElementById('tablaBody').innerHTML =
-        '<tr><td colspan="9" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>';
+      Pag.pintar('cosecha', [], '<tr><td colspan="9" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>');
     }
   }
 }
@@ -150,12 +151,7 @@ function limpiarFiltros() {
 
 // ── RENDER ──────────────────────────────────────────
 function renderTabla(lista) {
-  const tbody = document.getElementById('tablaBody');
-  if (!lista.length) {
-    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No hay registros de cosecha</td></tr>';
-    return;
-  }
-  tbody.innerHTML = lista.map(c => `
+  const filas = lista.map(c => `
     <tr>
       <td class="lote">${c.numeroLote || '—'}</td>
       <td class="name">${c.parcela?.nombre || '—'}</td>
@@ -169,7 +165,8 @@ function renderTabla(lista) {
         <button class="action-btn" onclick="abrirEditar(${c.id})">✎</button>
         <button class="action-btn danger" onclick="eliminar(${c.id})">✕</button>
       </td>
-    </tr>`).join('');
+    </tr>`);
+  Pag.pintar('cosecha', filas, '<tr><td colspan="9" class="empty-state">No hay registros de cosecha</td></tr>');
 }
 
 // ── MODAL ───────────────────────────────────────────

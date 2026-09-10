@@ -8,6 +8,7 @@ const API_CLIENTES = 'http://localhost:8081/api/clientes';
 let clientes  = [];
 let productos = [];
 let lineas    = [];
+let cfg = { iva: 15, bolsa: false, precio: 0, fechaPrecio: null };
 
 // ── USUARIO SIDEBAR ─────────────────────────────────
 const u = JSON.parse(localStorage.getItem('usuario') || '{}');
@@ -72,7 +73,84 @@ function init() {
   cargarKPIs();
   cargarClientes();
   cargarProductos();
+  cargarConfig();
   agregarLinea();
+  setInterval(evaluarAlertaBolsa, 60000);
+}
+
+function cerrarModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ── CONFIG PRECIO / IVA ────────────────────────────
+async function cargarConfig() {
+  try {
+    const res = await fetch(`${API_VENTAS}/config`);
+    if (!res.ok) throw new Error();
+    const d = await res.json();
+    cfg.iva = parseFloat(d.ivaPorcentaje) || 0;
+    cfg.bolsa = !!d.usarPrecioBolsa;
+    cfg.precio = parseFloat(d.precioBolsa) || 0;
+    cfg.fechaPrecio = d.fechaPrecioBolsa || null;
+  } catch {}
+  aplicarConfig();
+}
+
+function aplicarConfig() {
+  document.getElementById('fIvaLabel').textContent = `IVA (${cfg.iva}%)`;
+  const badge = document.getElementById('modoPrecioBadge');
+  if (cfg.bolsa && cfg.precio > 0) {
+    badge.style.display = 'inline-block';
+    badge.textContent = `Bolsa $${cfg.precio.toFixed(2)}/kg`;
+    lineas.forEach(l => { l.precio = cfg.precio; });
+  } else {
+    badge.style.display = 'none';
+  }
+  renderLineas();
+  evaluarAlertaBolsa();
+}
+
+function fechaHoyLocal() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function evaluarAlertaBolsa() {
+  const mostrar = cfg.bolsa && cfg.fechaPrecio !== fechaHoyLocal();
+  document.getElementById('bannerBolsa').style.display = mostrar ? 'flex' : 'none';
+  if (mostrar) document.getElementById('bannerBolsaPrecio').textContent = '$' + cfg.precio.toFixed(2) + '/kg';
+}
+
+function abrirModalConfig() {
+  document.getElementById('cfgIva').value = cfg.iva;
+  document.getElementById('cfgBolsaOn').checked = cfg.bolsa;
+  document.getElementById('cfgBolsaPrecio').value = cfg.precio || '';
+  document.getElementById('cfgBolsaFecha').textContent = cfg.fechaPrecio
+    ? 'Última actualización del precio de bolsa: ' + cfg.fechaPrecio
+    : 'Aún no se ha definido el precio de bolsa';
+  document.getElementById('modalConfig').classList.add('open');
+}
+
+async function guardarConfig() {
+  const iva = parseFloat(document.getElementById('cfgIva').value);
+  const bolsaOn = document.getElementById('cfgBolsaOn').checked;
+  const precioRaw = document.getElementById('cfgBolsaPrecio').value;
+  const precio = precioRaw === '' ? null : parseFloat(precioRaw);
+  if (!(iva >= 0) || iva > 100) { showToast('El IVA debe estar entre 0 y 100', 'error'); return; }
+  if (bolsaOn && !(precio > 0)) { showToast('Define el precio de bolsa para activar el modo bolsa', 'error'); return; }
+  try {
+    const res = await fetch(`${API_VENTAS}/config`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ ivaPorcentaje: iva, usarPrecioBolsa: bolsaOn, precioBolsa: precio })
+    });
+    const data = await res.json();
+    if (!res.ok) { showToast('Error: ' + (data.error || 'No se pudo guardar'), 'error'); return; }
+    cfg.iva = parseFloat(data.ivaPorcentaje) || 0;
+    cfg.bolsa = !!data.usarPrecioBolsa;
+    cfg.precio = parseFloat(data.precioBolsa) || 0;
+    cfg.fechaPrecio = data.fechaPrecioBolsa || null;
+    cerrarModal('modalConfig');
+    showToast('Configuración guardada ✓');
+    aplicarConfig();
+  } catch { showToast('Error al guardar la configuración', 'error'); }
 }
 
 async function generarNumero() {
@@ -109,7 +187,8 @@ function opcionesProductos(lid, selectedId) {
 
 function agregarLinea() {
   const id = Date.now() + Math.random();
-  lineas.push({ id, productoId: '', nombre: '', calidad: 'PRIMERA', cantidad: 1, precio: 0, subtotal: 0, stock: 0 });
+  lineas.push({ id, productoId: '', nombre: '', calidad: 'PRIMERA', cantidad: 1,
+    precio: (cfg.bolsa && cfg.precio > 0) ? cfg.precio : 0, subtotal: 0, stock: 0 });
   renderLineas();
 }
 
@@ -203,7 +282,7 @@ function renderLineas() {
           <input type="number" id="qty-${l.id}" class="linea-num ${l.productoId && l.cantidad > l.stock ? 'input-error' : ''}" min="0.01" step="0.01" value="${l.cantidad}" oninput="onLineaCantidad(${l.id}, this.value)">
           <div id="stockMsg-${l.id}" class="linea-err" style="display:${l.productoId && l.cantidad > l.stock ? 'block' : 'none'}">Stock insuf.: ${l.stock} disp.</div>
         </td>
-        <td><input type="number" class="linea-num" min="0" step="0.01" placeholder="Precio / kg" value="${l.precio || ''}" oninput="onLineaPrecio(${l.id}, this.value)"></td>
+        <td><input type="number" class="linea-num" min="0" step="0.01" placeholder="Precio / kg" value="${l.precio || ''}" oninput="onLineaPrecio(${l.id}, this.value)" ${cfg.bolsa ? 'disabled title="Precio de bolsa global (cámbialo en ⚙ Precio e IVA)"' : ''}></td>
         <td class="mono" id="sub-${l.id}">${fmtMoney(l.subtotal)}</td>
         <td class="mono" id="stock-${l.id}">${l.stock || '—'}</td>
         <td><button class="action-btn danger" onclick="eliminarLinea(${l.id})">✕</button></td>
@@ -214,7 +293,7 @@ function renderLineas() {
 
 function recalcularTotales() {
   const subtotal = lineas.reduce((s, l) => s + (l.subtotal || 0), 0);
-  const iva      = subtotal * 0.15;
+  const iva      = subtotal * (cfg.iva / 100);
   const total    = subtotal + iva;
   document.getElementById('fSubtotal').textContent = fmtMoney(subtotal);
   document.getElementById('fIva').textContent      = fmtMoney(iva);
@@ -267,6 +346,9 @@ async function confirmarVenta() {
       showToast('Error: ' + (data.error || 'No se pudo registrar'), 'error'); return;
     }
     showToast('Venta registrada · Factura ' + data.numeroFactura + ' ✓');
+    if (data.trazabilidadPendiente > 0) {
+      setTimeout(() => showToast(`⚠ ${data.trazabilidadPendiente} lote(s) vendido(s) pendiente(s) de asignar trazabilidad`, 'warning'), 3600);
+    }
     await cargarProductos();
     await cargarKPIs();
     limpiarFormulario();
@@ -288,8 +370,9 @@ function datosReciboActual() {
   const ce = clientes.find(c => c.id === Number(document.getElementById('fCliente').value));
   const lineaValidas = lineas.filter(l => l.productoId);
   const subtotal = lineaValidas.reduce((s, l) => s + (l.subtotal || 0), 0);
-  const iva      = subtotal * 0.15;
+  const iva      = subtotal * (cfg.iva / 100);
   return {
+    ivaPct: cfg.iva,
     numero:  document.getElementById('numeroFactura').value || '',
     cliente: ce ? ce.nombre : '',
     cedula:  ce ? (ce.cedula || '') : '',
@@ -328,7 +411,7 @@ function pintarRecibo(r) {
     </table>
     <div class="recibo-totales">
       <div>Subtotal: <strong>${fmtMoney(r.subtotal)}</strong></div>
-      <div>IVA (15%): <strong>${fmtMoney(r.iva)}</strong></div>
+      <div>IVA (${r.ivaPct}%): <strong>${fmtMoney(r.iva)}</strong></div>
       <div class="recibo-grand">TOTAL: <strong>${fmtMoney(r.total)}</strong></div>
     </div>
     <div class="recibo-pie">¡Gracias por su preferencia!</div>`;

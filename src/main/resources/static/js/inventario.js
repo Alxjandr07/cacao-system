@@ -4,6 +4,8 @@
 const API = 'http://localhost:8081/api/inventario';
 let productos = [];
 
+Pag.registrar('inventario', 'tablaBody', 'pag-tablaBody');
+
 // ── UTILS ──────────────────────────────────────────
 function showToast(msg, type = 'success') {
   const t = document.getElementById('toast');
@@ -63,8 +65,7 @@ async function cargarProductos(conToast) {
   } catch {
     if (conToast) showToast('No se pudieron actualizar los datos', 'error');
     if (!productos.length) {
-      document.getElementById('tablaBody').innerHTML =
-        '<tr><td colspan="7" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>';
+      Pag.pintar('inventario', [], '<tr><td colspan="7" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>');
     }
   }
 }
@@ -86,12 +87,7 @@ async function cargarAlertas() {
 
 // ── RENDER ──────────────────────────────────────────
 function renderTabla(lista) {
-  const tbody = document.getElementById('tablaBody');
-  if (!lista.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No hay productos registrados</td></tr>';
-    return;
-  }
-  tbody.innerHTML = lista.map(p => {
+  const filas = lista.map(p => {
     const stock  = parseFloat(p.stockActual);
     const min    = parseFloat(p.stockMinimo);
     const critico    = stock === 0;
@@ -117,7 +113,8 @@ function renderTabla(lista) {
         <button class="action-btn danger" onclick="eliminar(${p.id})">✕</button>
       </td>
     </tr>`;
-  }).join('');
+  });
+  Pag.pintar('inventario', filas, '<tr><td colspan="7" class="empty-state">No hay productos registrados</td></tr>');
 }
 
 // ── FILTROS ─────────────────────────────────────────

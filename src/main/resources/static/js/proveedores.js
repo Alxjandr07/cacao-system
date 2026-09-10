@@ -3,6 +3,9 @@ let proveedores = [];
 let proveedorActual = null;
 let insumos = [];
 
+Pag.registrar('proveedores', 'tablaBody', 'pag-tablaBody');
+Pag.registrar('insumos', 'insumosBody', 'pag-insumosBody');
+
 const SUMINISTROS = {
   QUIMICOS:     { label: '🧪 Químicos',     cls: 'badge-poda' },
   FERTILIZANTES:{ label: '🌿 Fertilizantes',cls: 'badge-cacao' },
@@ -51,19 +54,13 @@ async function cargarProveedores(conToast) {
   } catch {
     if (conToast) showToast('No se pudieron actualizar los datos', 'error');
     if (!proveedores.length) {
-      document.getElementById('tablaBody').innerHTML =
-        '<tr><td colspan="9" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>';
+      Pag.pintar('proveedores', [], '<tr><td colspan="9" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>');
     }
   }
 }
 
 function renderTabla(lista) {
-  const tbody = document.getElementById('tablaBody');
-  if (!lista.length) {
-    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No hay proveedores registrados</td></tr>';
-    return;
-  }
-  tbody.innerHTML = lista.map(p => `
+  const filas = lista.map(p => `
     <tr>
       <td class="mono">${p.ruc || '—'}</td>
       <td class="name">${p.nombre}</td>
@@ -82,7 +79,8 @@ function renderTabla(lista) {
         <button class="action-btn danger" onclick="eliminarProveedor(${p.id})">✕ Eliminar</button>
       </td>
     </tr>
-  `).join('');
+  `);
+  Pag.pintar('proveedores', filas, '<tr><td colspan="9" class="empty-state">No hay proveedores registrados</td></tr>');
 }
 
 function formatearTipo(tipo) {
@@ -328,18 +326,12 @@ async function cargarInsumos(proveedorId) {
     insumos = await res.json();
     renderInsumos();
   } catch {
-    document.getElementById('insumosBody').innerHTML =
-      '<tr><td colspan="5" class="empty-state">⚠ No se pudieron cargar los insumos</td></tr>';
+    Pag.pintar('insumos', [], '<tr><td colspan="5" class="empty-state">⚠ No se pudieron cargar los insumos</td></tr>');
   }
 }
 
 function renderInsumos() {
-  const tbody = document.getElementById('insumosBody');
-  if (!insumos.length) {
-    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Este proveedor aún no registra insumos</td></tr>';
-    return;
-  }
-  tbody.innerHTML = insumos.map(i => `
+  const filas = insumos.map(i => `
     <tr>
       <td class="name">${i.nombre}</td>
       <td>${i.unidadMedida}</td>
@@ -349,7 +341,8 @@ function renderInsumos() {
         <button class="action-btn" style="font-size:11px;color:var(--green-dark)" onclick="verEnInventario(${i.id})">📦 Ver</button>
         <button class="action-btn danger" onclick="eliminarInsumo(${i.id})">✕</button>
       </td>
-    </tr>`).join('');
+    </tr>`);
+  Pag.pintar('insumos', filas, '<tr><td colspan="5" class="empty-state">Este proveedor aún no registra insumos</td></tr>');
 }
 
 async function guardarInsumo() {

@@ -26,8 +26,10 @@ public class PermisoInterceptor implements HandlerInterceptor {
         Map.entry("/api/ventas", "GESTIONAR_VENTAS"),
         Map.entry("/api/facturacion", "GESTIONAR_VENTAS"),
         Map.entry("/api/clientes", "GESTIONAR_VENTAS"),
-        Map.entry("/api/trazabilidad", "GESTIONAR_COSECHA")
-    );
+Map.entry("/api/trazabilidad", "GESTIONAR_COSECHA"),
+		Map.entry("/api/auditoria", "VER_AUDITORIA"),
+		Map.entry("/api/backups", "GESTIONAR_BACKUPS")
+	);
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)

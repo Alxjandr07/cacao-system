@@ -6,6 +6,34 @@
   <title>Trazabilidad — CacaoGest</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=DM+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/cacaogest.css">
+  <style>
+    .alert-pend {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: #fdf3e3;
+      border: 1px solid #e8c87a;
+      color: #7a5b12;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .check-pend {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dark);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .check-pend input { width: auto; margin: 0; accent-color: var(--green); }
+  </style>
 </head>
 <body>
 
@@ -34,6 +62,8 @@
     <a class="nav-item" href="ventas.html"><span class="nav-icon">💰</span> Ventas</a>
     <a class="nav-item" href="facturacion.html"><span class="nav-icon">🧾</span> Facturación y Reportes</a>
     <a class="nav-item active" href="trazabilidad.html"><span class="nav-icon">🔍</span> Trazabilidad</a>
+    <div class="nav-section-label">SISTEMA</div>
+    <a class="nav-item" href="auditoria.html"><span class="nav-icon">🛡️</span> Auditoría y Respaldos</a>
   </div>
   <div class="sidebar-user">
     <div class="user-avatar">🌿</div>
@@ -56,6 +86,10 @@
   </div>
 
   <div class="content">
+    <div class="alert-pend" id="bannerPendientes" style="display:none">
+      <span>⚠ <b id="bannerPendientesCount">0</b> lote(s) vendido(s) sin trazabilidad asignada</span>
+      <button class="btn-outline" onclick="verPendientes()">Ver pendientes</button>
+    </div>
     <!-- KPIs -->
     <div class="kpi-grid">
       <div class="kpi-card">
@@ -64,24 +98,24 @@
         <div class="kpi-sub">registrados 2026</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">Cosechados</div>
-        <div class="kpi-value" id="kpiCosechados">0</div>
-        <div class="kpi-sub">en espera</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">En Inventario</div>
-        <div class="kpi-value" id="kpiInventario">0</div>
-        <div class="kpi-sub">disponibles</div>
-      </div>
-      <div class="kpi-card">
         <div class="kpi-label">Vendidos</div>
         <div class="kpi-value" id="kpiVendidos">0</div>
-        <div class="kpi-sub">completados</div>
+        <div class="kpi-sub">con factura</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Pendientes</div>
+        <div class="kpi-value" id="kpiPendientes">0</div>
+        <div class="kpi-sub">sin trazabilidad</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Completas</div>
+        <div class="kpi-value" id="kpiCompletas">0</div>
+        <div class="kpi-sub">trazabilidad lista</div>
       </div>
     </div>
 
     <div class="toolbar">
-      <input class="search-input" type="text" id="searchInput" placeholder="🔍 Buscar lote o cliente...">
+      <input class="search-input" type="text" id="searchInput" placeholder="🔍 Buscar lote, parcela, producto o cliente...">
       <select class="filter-select" id="filtroEstado" onchange="filtrar()">
         <option value="">Todos los estados</option>
         <option value="COSECHADO">Cosechado</option>
@@ -90,6 +124,7 @@
         <option value="VENDIDO">Vendido</option>
         <option value="PARCIAL">Parcial</option>
       </select>
+      <label class="check-pend"><input type="checkbox" id="filtroPend" onchange="filtrar()"> Solo pendientes</label>
       <button class="btn-outline" onclick="cargarLotes(true)">↻ Actualizar</button>
     </div>
 
@@ -100,20 +135,22 @@
             <th>Código Lote</th>
             <th>Parcela</th>
             <th>Fecha Cosecha</th>
-            <th>Cosechado (kg)</th>
-            <th>Procesado (kg)</th>
+            <th>Producto</th>
             <th>Vendido (kg)</th>
             <th>Cliente</th>
             <th>N° Factura</th>
-            <th>Estado</th>
+            <th>F. Venta</th>
+            <th>Secado</th>
+            <th>Trazabilidad</th>
             <th>Acción</th>
           </tr>
         </thead>
         <tbody id="tablaBody">
-          <tr><td colspan="10" class="empty-state">Cargando lotes...</td></tr>
+          <tr><td colspan="11" class="empty-state">Cargando lotes...</td></tr>
         </tbody>
       </table>
     </div>
+    <div class="paginacion" id="pag-tablaBody"></div>
   </div>
 </div>
 
@@ -170,6 +207,35 @@
           <input type="text" id="lCliente" placeholder="Cliente al que se vendió">
         </div>
         <div class="field col-full">
+          <label>Producto</label>
+          <input type="text" id="lProducto" placeholder="Producto vendido del lote">
+        </div>
+        <div class="field col-full">
+          <label>Insumos utilizados</label>
+          <textarea id="lInsumos" placeholder="Ej: Fertilizante NPK 2kg, Fungicida 500ml..."></textarea>
+        </div>
+        <div class="field col-full">
+          <label>Tratamiento / especificación</label>
+          <textarea id="lTratamiento" placeholder="Ej: Fermentado 5 días en cajones de madera, lavado..."></textarea>
+        </div>
+        <div class="field">
+          <label>Días de secado</label>
+          <input type="number" id="lDiasSecado" placeholder="0" min="0" step="1">
+        </div>
+        <div class="field">
+          <label>&nbsp;</label>
+          <div class="show-pw">
+            <input type="checkbox" id="lSecadoMaquina" style="width:auto">
+            <span>Secado en máquina</span>
+          </div>
+        </div>
+        <div class="field col-full">
+          <div class="show-pw">
+            <input type="checkbox" id="lCompleta" style="width:auto">
+            <span><b>Trazabilidad completa</b> (lote con todos los datos asignados)</span>
+          </div>
+        </div>
+        <div class="field col-full">
           <label>Observaciones</label>
           <textarea id="lObservaciones" placeholder="Opcional..."></textarea>
         </div>
@@ -184,6 +250,7 @@
 
 <div class="toast" id="toast"></div>
 <script src="js/app.js"></script>
+<script src="js/paginacion.js"></script>
 <script src="js/trazabilidad.js"></script>
 </body>
 </html>

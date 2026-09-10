@@ -48,7 +48,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); display:flex; 
 
 /* MAIN */
 .main { margin-left:220px; flex:1; display:flex; flex-direction:column; background:var(--cream); min-width:0; }
-.topbar { background:var(--cream); border-bottom:0.8px solid var(--border-color); padding:16px 28px; display:flex; align-items:center; justify-content:space-between; }
+.topbar { background:var(--cream); border-bottom:0.8px solid var(--border-color); padding:16px 28px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; }
 .page-title { font-family:'DM Sans',sans-serif; font-weight:600; font-size:20px; color:var(--green); letter-spacing:-0.6px; }
 .page-sub { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-main); margin-top:2px; }
 .content { flex:1; padding:24px 28px; }
@@ -83,6 +83,15 @@ td.name { font-family:'DM Sans',sans-serif; font-weight:500; font-size:13px; col
 td.mono { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-dark); }
 td.lote { font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:700; color:var(--green-dark); }
 .empty-state { text-align:center; padding:48px; color:var(--border-color); font-size:13px; }
+
+/* PAGINACIÓN */
+.paginacion { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 4px 4px; flex-wrap:wrap; }
+.pag-info { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-main); }
+.pag-botones { display:flex; align-items:center; gap:8px; }
+.pag-btn { background:#fff; border:0.8px solid var(--border-color); border-radius:6px; padding:6px 14px; font-size:12px; color:var(--text-main); cursor:pointer; font-family:'Inter',sans-serif; transition:all 0.15s; }
+.pag-btn:hover:not(:disabled) { border-color:var(--green); color:var(--green-dark); }
+.pag-btn:disabled { opacity:0.45; cursor:default; }
+.pag-pagina { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-main); }
 
 /* BADGES */
 .badge { display:inline-flex; align-items:center; gap:5px; font-family:'DM Sans',sans-serif; font-weight:500; font-size:10px; padding:3px 10px; border-radius:4px; white-space:nowrap; }
@@ -199,6 +208,7 @@ td.lote { font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:700
 .toast.show { opacity:1; transform:translateY(0); }
 .toast.error { background:#c0392b; }
 .toast.success { background:var(--green-dark); }
+.toast.warning { background:#b7791f; }
 
 /* MODAL GRANDE (facturación) */
 .modal-lg { max-width: 860px; }
