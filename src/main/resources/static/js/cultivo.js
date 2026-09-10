@@ -9,6 +9,9 @@ let pagosPorActividad = {};
 let sueldosEmpleadoSel = {};
 let tabActual   = 'parcelas';
 
+Pag.registrar('parcelas', 'parcelasGrid', 'pag-parcelasGrid');
+Pag.registrar('actividades', 'actividadesBody', 'pag-actividadesBody');
+
 // ── DATOS ECUADOR ────────────────────────────────────
 const ECUADOR = {
   "Azuay":           ["Cuenca","Girón","Gualaceo","Nabón","Paute","Pucará","San Fernando","Santa Isabel","Sigsig","Oña","Chordeleg","El Pan","Sevilla de Oro","Guachapala","Camilo Ponce Enríquez"],
@@ -215,19 +218,13 @@ async function cargarParcelas(conToast) {
   } catch {
     if (conToast) showToast('No se pudieron actualizar los datos', 'error');
     if (!parcelas.length) {
-      document.getElementById('parcelasGrid').innerHTML =
-        '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--border-color)">⚠ No se pudo conectar</div>';
+      Pag.pintar('parcelas', [], '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--border-color)">⚠ No se pudo conectar</div>');
     }
   }
 }
 
 function renderParcelas(lista) {
-  const grid = document.getElementById('parcelasGrid');
-  if (!lista.length) {
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--border-color)">No hay parcelas registradas</div>';
-    return;
-  }
-  grid.innerHTML = lista.map(p => `
+  const filas = lista.map(p => `
     <div class="parcela-card">
       <div class="parcela-name">🌿 ${p.nombre}</div>
       <div class="parcela-meta">📍 ${p.ubicacion}${p.direccion ? ' — ' + p.direccion : ''}</div>
@@ -240,7 +237,8 @@ function renderParcelas(lista) {
         <button class="action-btn" onclick="abrirEditarParcela(${p.id})">✎ Editar</button>
         <button class="action-btn danger" onclick="eliminarParcela(${p.id})">✕</button>
       </div>
-    </div>`).join('');
+    </div>`);
+  Pag.pintar('parcelas', filas, '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--border-color)">No hay parcelas registradas</div>');
 }
 
 function poblarSelectParcelas() {
@@ -264,8 +262,7 @@ async function cargarActividades() {
     actividades = await res.json();
     filtrarActividades();
   } catch {
-    document.getElementById('actividadesBody').innerHTML =
-      '<tr><td colspan="8" class="empty-state">⚠ No se pudo conectar</td></tr>';
+    Pag.pintar('actividades', [], '<tr><td colspan="10" class="empty-state">⚠ No se pudo conectar</td></tr>');
   }
 }
 
@@ -294,12 +291,7 @@ function filtrarActividades() {
 }
 
 function renderActividades(lista) {
-  const tbody = document.getElementById('actividadesBody');
-  if (!lista.length) {
-    tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No hay actividades registradas</td></tr>';
-    return;
-  }
-  tbody.innerHTML = lista.map(a => {
+  const filas = lista.map(a => {
     const pg = pagosPorActividad[a.id];
     return `
     <tr>
@@ -317,7 +309,8 @@ function renderActividades(lista) {
         <button class="action-btn danger" onclick="eliminarActividad(${a.id})">✕</button>
       </td>
     </tr>`;
-  }).join('');
+  });
+  Pag.pintar('actividades', filas, '<tr><td colspan="10" class="empty-state">No hay actividades registradas</td></tr>');
 }
 
 function verHistorial(parcelaId) {

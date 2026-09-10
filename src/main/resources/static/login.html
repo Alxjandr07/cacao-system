@@ -197,6 +197,10 @@
       <div class="field">
         <label>Contraseña</label>
         <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+        <div class="show-pw">
+          <input type="checkbox" id="showPw" style="width:auto" onclick="togglePassword(event)">
+          <span role="button" tabindex="0" onclick="togglePassword(event)" style="cursor:pointer">Mostrar contraseña</span>
+        </div>
       </div>
     </div>
 

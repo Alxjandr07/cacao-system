@@ -9,6 +9,9 @@ let usuarios = [];
 let roles    = [];
 let permisos = [];
 
+Pag.registrar('usuarios', 'tablaUsuariosBody', 'pag-tablaUsuariosBody');
+Pag.registrar('roles', 'tablaRolesBody', 'pag-tablaRolesBody');
+
 const usuarioActual  = JSON.parse(localStorage.getItem('usuario') || '{}');
 const ES_ADMIN       = usuarioActual.rol === 'ADMIN';
 const esAdminOperador = (u) => u.rol && u.rol.nombre === 'ADMIN';
@@ -134,13 +137,8 @@ async function cargarRoles() {
 }
 
 function renderizarRoles() {
-  const body = document.getElementById('tablaRolesBody');
-  if (roles.length === 0) {
-    body.innerHTML = '<tr><td colspan="5" class="empty-state">No hay roles registrados</td></tr>';
-    return;
-  }
   const puedeGestionarRoles = window.tienePermiso && tienePermiso('GESTIONAR_ROLES');
-  body.innerHTML = roles.map(r => `
+  const filas = roles.map(r => `
     <tr>
       <td class="name">${r.nombre}</td>
       <td>${r.descripcion || '—'}</td>
@@ -155,7 +153,8 @@ function renderizarRoles() {
           : '<span style="color:var(--border-color);font-size:11px">Solo lectura</span>'}
       </td>
     </tr>
-  `).join('');
+  `);
+  Pag.pintar('roles', filas, '<tr><td colspan="5" class="empty-state">No hay roles registrados</td></tr>');
 }
 
 function poblarSelectRoles() {
@@ -240,12 +239,7 @@ async function cargarUsuarios(conToast) {
 }
 
 function renderizarUsuarios() {
-  const body = document.getElementById('tablaUsuariosBody');
-  if (usuarios.length === 0) {
-    body.innerHTML = '<tr><td colspan="8" class="empty-state">No hay usuarios registrados</td></tr>';
-    return;
-  }
-  body.innerHTML = usuarios.map(u => `
+  const filas = usuarios.map(u => `
     <tr>
       <td class="name">${u.username}</td>
       <td>${u.nombres || '—'}</td>
@@ -261,7 +255,8 @@ function renderizarUsuarios() {
           : '<span class="badge badge-insumo">🔒 Administrador</span>'}
       </td>
     </tr>
-  `).join('');
+  `);
+  Pag.pintar('usuarios', filas, '<tr><td colspan="8" class="empty-state">No hay usuarios registrados</td></tr>');
 }
 
 function abrirModalUsuario() {

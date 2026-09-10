@@ -32,6 +32,8 @@
     <a class="nav-item" href="ventas.html"><span class="nav-icon">💰</span> Ventas</a>
     <a class="nav-item" href="facturacion.html"><span class="nav-icon">🧾</span> Facturación y Reportes</a>
     <a class="nav-item" href="trazabilidad.html"><span class="nav-icon">🔍</span> Trazabilidad</a>
+    <div class="nav-section-label">SISTEMA</div>
+    <a class="nav-item" href="auditoria.html"><span class="nav-icon">🛡️</span> Auditoría y Respaldos</a>
   </div>
   <div class="sidebar-user">
     <div class="user-avatar">🌿</div>
@@ -63,6 +65,7 @@
       <div class="parcelas-grid" id="parcelasGrid">
         <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--border-color)">Cargando parcelas...</div>
       </div>
+      <div class="paginacion" id="pag-parcelasGrid"></div>
     </div>
 
     <div id="vistaActividades" style="display:none;">
@@ -99,6 +102,7 @@
           </tbody>
         </table>
       </div>
+      <div class="paginacion" id="pag-actividadesBody"></div>
     </div>
   </div>
 </div>
@@ -237,6 +241,7 @@
 
 <div class="toast" id="toast"></div>
 <script src="js/app.js"></script>
+<script src="js/paginacion.js"></script>
 <script src="js/cultivo.js"></script>
 </body>
 </html>

@@ -13,7 +13,8 @@ const MODULO_PERMISO = {
   'cosecha':     'GESTIONAR_COSECHA',
   'ventas':      'GESTIONAR_VENTAS',
   'facturacion': 'GESTIONAR_VENTAS',
-  'trazabilidad':'GESTIONAR_COSECHA'
+  'trazabilidad':'GESTIONAR_COSECHA',
+  'auditoria':   'VER_AUDITORIA'
 };
 
 function getUsuarioActual() {
@@ -71,7 +72,7 @@ function aplicarPermisosMenu() {
 // 3) Redirigir si el usuario no puede ver la página actual
 function primerModuloPermitido() {
   const u = getUsuarioActual();
-  const orden = ['dashboard','inventario','cultivo','cosecha','trazabilidad','clientes','ventas','facturacion','personal','usuarios','proveedores'];
+  const orden = ['dashboard','inventario','cultivo','cosecha','trazabilidad','clientes','ventas','facturacion','personal','usuarios','proveedores','auditoria'];
   for (const key of orden) {
     const req = MODULO_PERMISO[key];
     if (!req || tienePermiso(req)) return key + '.html';
@@ -91,6 +92,14 @@ function verificarAccesoPagina() {
 }
 
 function cerrarSesionApp() {
+  const u = getUsuarioActual();
+  if (u && u.username) {
+    fetch('/api/auth/logout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: u.username })
+    }).catch(() => {});
+  }
   localStorage.removeItem('usuario');
   window.location.href = 'login.html';
 }

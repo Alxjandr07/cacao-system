@@ -10,6 +10,8 @@ let clientes  = [];
 let productos = [];
 let lineas    = [];
 
+Pag.registrar('facturas', 'tablaBody', 'pag-tablaBody');
+
 // ── USUARIO SIDEBAR ─────────────────────────────────
 const u = JSON.parse(localStorage.getItem('usuario') || '{}');
 if (u.nombres) document.getElementById('sidebarNombre').textContent = u.nombres + ' ' + (u.apellidos || '');
@@ -45,8 +47,7 @@ async function cargarFacturas(conToast) {
   } catch {
     if (conToast) showToast('No se pudieron actualizar los datos', 'error');
     if (!facturas.length) {
-      document.getElementById('tablaBody').innerHTML =
-        '<tr><td colspan="9" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>';
+      Pag.pintar('facturas', [], '<tr><td colspan="9" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>');
     }
   }
 }
@@ -86,12 +87,7 @@ function actualizarKPIs() {
 
 // ── RENDER TABLA ────────────────────────────────────
 function renderTabla(lista) {
-  const tbody = document.getElementById('tablaBody');
-  if (!lista.length) {
-    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No hay facturas registradas</td></tr>';
-    return;
-  }
-  tbody.innerHTML = lista.map(f => {
+  const filas = lista.map(f => {
     const estadoBadge = f.estado === 'PAGADA'
       ? `<span class="badge badge-disponible"><span class="badge-dot dot-blue"></span>Pagada</span>`
       : f.estado === 'ANULADA'
@@ -118,7 +114,8 @@ function renderTabla(lista) {
         ${f.estado !== 'ANULADA' ? `<button class="action-btn danger" onclick="anular(${f.id})">✕ Anular</button>` : ''}
       </td>
     </tr>`;
-  }).join('');
+  });
+  Pag.pintar('facturas', filas, '<tr><td colspan="9" class="empty-state">No hay facturas registradas</td></tr>');
 }
 
 // ── FILTROS ─────────────────────────────────────────

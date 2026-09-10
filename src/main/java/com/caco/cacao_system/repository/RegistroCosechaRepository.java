@@ -29,4 +29,7 @@ public interface RegistroCosechaRepository extends JpaRepository<RegistroCosecha
 
     // Buscar por número de lote
     Optional<RegistroCosecha> findByNumeroLote(String numeroLote);
+
+    // Cosechas vinculadas a un producto de inventario (FIFO por fecha de cosecha)
+    List<RegistroCosecha> findByProductoInventarioIdOrderByFechaCosechaAsc(Long productoId);
 }

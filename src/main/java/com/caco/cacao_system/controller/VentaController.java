@@ -2,6 +2,8 @@ package com.caco.cacao_system.controller;
 
 import com.caco.cacao_system.model.*;
 import com.caco.cacao_system.repository.*;
+import com.caco.cacao_system.service.ConfiguracionVentaService;
+import com.caco.cacao_system.service.TrazabilidadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,10 @@ public class VentaController {
     private final FacturaRepository facturaRepository;
     private final DetalleFacturaRepository detalleRepository;
     private final MovimientoInventarioRepository movimientoRepository;
+    private final TrazabilidadService trazabilidadService;
+    private final ConfiguracionVentaService configuracionVentaService;
+
+    private record LineaVendida(ProductoInventario producto, BigDecimal cantidadKg) {}
 
     @GetMapping("/clientes")
     public ResponseEntity<?> buscarClientes(@RequestParam String q) {
@@ -64,6 +70,39 @@ public class VentaController {
         return ResponseEntity.ok(Map.of("numero", numero));
     }
 
+    @GetMapping("/config")
+    public ResponseEntity<Map<String, Object>> obtenerConfig() {
+        return ResponseEntity.ok(configComoMapa(configuracionVentaService.obtener()));
+    }
+
+    @PutMapping("/config")
+    public ResponseEntity<?> actualizarConfig(@RequestBody Map<String, Object> body) {
+        try {
+            Object ivaRaw = body.get("ivaPorcentaje");
+            Object bolsaRaw = body.get("usarPrecioBolsa");
+            Object precioRaw = body.get("precioBolsa");
+            BigDecimal iva = (ivaRaw == null || ivaRaw.toString().isBlank()) ? null
+                    : new BigDecimal(ivaRaw.toString());
+            Boolean usarBolsa = (bolsaRaw == null) ? null : Boolean.valueOf(bolsaRaw.toString());
+            BigDecimal precio = (precioRaw == null || precioRaw.toString().isBlank()) ? null
+                    : new BigDecimal(precioRaw.toString());
+            ConfiguracionVenta c = configuracionVentaService.actualizar(iva, usarBolsa, precio);
+            return ResponseEntity.ok(configComoMapa(c));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    private Map<String, Object> configComoMapa(ConfiguracionVenta c) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("ivaPorcentaje", c.getIvaPorcentaje());
+        m.put("usarPrecioBolsa", c.getUsarPrecioBolsa());
+        m.put("precioBolsa", c.getPrecioBolsa());
+        m.put("fechaPrecioBolsa",
+                c.getFechaPrecioBolsa() != null ? c.getFechaPrecioBolsa().toString() : null);
+        return m;
+    }
+
     @PostMapping("/registrar")
     @Transactional
     public ResponseEntity<?> registrarVenta(@RequestBody Map<String, Object> body) {
@@ -88,6 +127,7 @@ public class VentaController {
             BigDecimal subtotal = BigDecimal.ZERO;
 
             List<DetalleFactura> detalles = new ArrayList<>();
+            List<LineaVendida> vendidas = new ArrayList<>();
 
             for (Map<String, Object> p : productos) {
                 Long productoId = Long.valueOf(p.get("productoId").toString());
@@ -119,6 +159,7 @@ public class VentaController {
                 producto.setStockActual(producto.getStockActual().subtract(cantidadKg));
                 producto.setActualizadoEn(LocalDateTime.now());
                 productoRepository.save(producto);
+                vendidas.add(new LineaVendida(producto, cantidadKg));
 
                 MovimientoInventario mov = new MovimientoInventario();
                 mov.setProducto(producto);
@@ -129,7 +170,9 @@ public class VentaController {
                 movimientoRepository.save(mov);
             }
 
-            BigDecimal iva = subtotal.multiply(new BigDecimal("0.15"));
+            BigDecimal tasaIva = configuracionVentaService.obtener().getIvaPorcentaje()
+                    .divide(new BigDecimal("100"));
+            BigDecimal iva = subtotal.multiply(tasaIva);
             BigDecimal total = subtotal.add(iva);
 
             String numeroFactura = (String) body.getOrDefault("numeroFactura", "");
@@ -158,11 +201,20 @@ public class VentaController {
                 detalleRepository.save(d);
             }
 
+            // Generar trazabilidad de los lotes cosechados vendidos (FIFO por fecha de cosecha)
+            int lotesPendientes = 0;
+            for (LineaVendida v : vendidas) {
+                lotesPendientes += trazabilidadService.registrarVenta(
+                        v.producto().getId(), v.producto().getNombre(),
+                        v.cantidadKg().doubleValue(), factura.getNumeroFactura(), clienteNombre);
+            }
+
             return ResponseEntity.ok(Map.of(
                 "success", true,
                 "mensaje", "Venta registrada correctamente",
                 "facturaId", factura.getId(),
-                "numeroFactura", factura.getNumeroFactura()
+                "numeroFactura", factura.getNumeroFactura(),
+                "trazabilidadPendiente", lotesPendientes
             ));
 
         } catch (Exception e) {

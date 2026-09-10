@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auditoría y Respaldos — CacaoGest</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=DM+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/cacaogest.css">
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🫘</div>
+    <div class="logo-text">
+      <div class="brand"><span class="cacao">CACAO</span><span class="gest">GEST</span></div>
+      <div class="cycle">Ciclo 2026</div>
+    </div>
+  </div>
+  <div class="nav-body">
+    <div class="nav-section-label">PRINCIPAL</div>
+    <a class="nav-item" href="dashboard.html"><span class="nav-icon">⊞</span> Dashboard</a>
+    <div class="nav-section-label">GESTIÓN</div>
+    <a class="nav-item" href="usuarios.html"><span class="nav-icon">👥</span> Usuarios y Roles</a>
+    <a class="nav-item" href="personal.html"><span class="nav-icon">👤</span> Gestión de Personal</a>
+    <a class="nav-item" href="clientes.html"><span class="nav-icon">📋</span> Clientes</a>
+    <a class="nav-item" href="proveedores.html"><span class="nav-icon">🚚</span> Proveedores</a>
+    <div class="nav-section-label">PRODUCCIÓN</div>
+    <a class="nav-item" href="inventario.html"><span class="nav-icon">📦</span> Inventario</a>
+    <a class="nav-item" href="cultivo.html"><span class="nav-icon">🌱</span> Cultivo y Mant.</a>
+    <a class="nav-item" href="cosecha.html"><span class="nav-icon">🫘</span> Cosecha</a>
+    <div class="nav-section-label">COMERCIAL</div>
+    <a class="nav-item" href="ventas.html"><span class="nav-icon">💰</span> Ventas</a>
+    <a class="nav-item" href="facturacion.html"><span class="nav-icon">🧾</span> Facturación y Reportes</a>
+    <a class="nav-item" href="trazabilidad.html"><span class="nav-icon">🔍</span> Trazabilidad</a>
+    <div class="nav-section-label">SISTEMA</div>
+    <a class="nav-item active" href="auditoria.html"><span class="nav-icon">🛡️</span> Auditoría y Respaldos</a>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar">🌿</div>
+    <div class="user-info"><div class="uname" id="userName">Administrador</div><div class="urole" id="userRol">admin123</div></div>
+    <span class="user-chevron">▲</span>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Auditoría del Sistema</div>
+      <div class="page-sub">Registro de operaciones y respaldos de la base de datos</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="tabs">
+      <button class="tab active" id="tabAuditoria" onclick="switchTab('auditoria')">📜 Auditoría</button>
+      <button class="tab" id="tabRespaldos" onclick="switchTab('respaldos')">💾 Respaldos</button>
+    </div>
+
+    <div id="vistaAuditoria">
+      <div class="toolbar" style="gap:8px">
+        <input class="search-input" type="text" id="fUsuario" placeholder="👤 Usuario..." style="width:140px">
+        <select class="search-input" id="fAccion" style="width:170px">
+          <option value="">Todas las acciones</option>
+          <option value="LOGIN">LOGIN</option>
+          <option value="LOGIN_FALLIDO">LOGIN FALLIDO</option>
+          <option value="LOGOUT">LOGOUT</option>
+          <option value="INSERT">INSERT</option>
+          <option value="UPDATE">UPDATE</option>
+          <option value="DELETE">DELETE</option>
+          <option value="RESPALDO">RESPALDO</option>
+          <option value="RESTAURACION">RESTAURACIÓN</option>
+          <option value="ELIMINAR_BACKUP">ELIMINAR RESPALDO</option>
+        </select>
+        <input class="search-input" type="text" id="fEntidad" placeholder="🗂️ Entidad..." style="width:130px">
+        <input class="search-input" type="datetime-local" id="fDesde" title="Desde" style="width:170px">
+        <input class="search-input" type="datetime-local" id="fHasta" title="Hasta" style="width:170px">
+        <button class="btn-primary" onclick="aplicarFiltros()">Filtrar</button>
+        <button class="btn-outline" onclick="limpiarFiltros()">Limpiar</button>
+        <button class="btn-outline" onclick="aplicarFiltros()">↻ Actualizar</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Entidad</th><th>Registro</th><th>IP</th><th>Detalle</th></tr>
+          </thead>
+          <tbody id="tablaAuditoriaBody">
+            <tr><td colspan="7" class="empty-state">Cargando auditoría...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="paginacion" id="pag-tablaAuditoriaBody"></div>
+    </div>
+
+    <div id="vistaRespaldos" style="display:none;">
+      <div class="toolbar" style="margin-bottom:14px;padding:14px;border:0.8px solid var(--border-color);border-radius:10px;background:#fff;width:fit-content;align-items:flex-end;">
+        <div style="display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--text-main);font-family:'Inter',sans-serif;">
+          <label>Frecuencia</label>
+          <select class="filter-select" id="cfgFrecuencia" onchange="toggleCamposProgramacion()" style="width:150px">
+            <option value="DESACTIVADO">Desactivado</option>
+            <option value="DIARIO">Diario</option>
+            <option value="SEMANAL">Semanal</option>
+            <option value="MENSUAL">Mensual</option>
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--text-main);font-family:'Inter',sans-serif;">
+          <label>Hora</label>
+          <input type="time" id="cfgHora" class="search-input" style="width:120px">
+        </div>
+        <div id="cfgDiaSemanaWrap" style="display:none;flex-direction:column;gap:4px;font-size:11px;color:var(--text-main);font-family:'Inter',sans-serif;">
+          <label>Día de la semana</label>
+          <select class="filter-select" id="cfgDiaSemana" style="width:150px"></select>
+        </div>
+        <div id="cfgDiaMesWrap" style="display:none;flex-direction:column;gap:4px;font-size:11px;color:var(--text-main);font-family:'Inter',sans-serif;">
+          <label>Día del mes</label>
+          <select class="filter-select" id="cfgDiaMes" style="width:150px"></select>
+        </div>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-main);cursor:pointer;font-family:'Inter',sans-serif;">
+          <input type="checkbox" id="cfgActivo" style="width:auto"> Respaldos activos
+        </label>
+        <button class="btn-primary" onclick="guardarProgramacion()">Guardar programación</button>
+      </div>
+      <div class="page-sub" id="cfgEstado" style="margin-top:-6px;margin-bottom:14px;"></div>
+      <div class="toolbar">
+        <button class="btn-primary" onclick="generarRespaldo()">💾 Generar respaldo ahora</button>
+        <button class="btn-outline" onclick="cargarRespaldos()">↻ Actualizar</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Archivo</th><th>Tamaño</th><th>Fecha</th><th>Acciones</th></tr>
+          </thead>
+          <tbody id="tablaRespaldosBody">
+            <tr><td colspan="4" class="empty-state">Cargando respaldos...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="paginacion" id="pag-tablaRespaldosBody"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalDetalle" onclick="if(event.target===this)cerrarDetalle()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Detalle de la auditoría</div>
+      <button class="modal-close" onclick="cerrarDetalle()">×</button>
+    </div>
+    <div class="modal-body">
+      <pre id="detalleTexto" style="margin:0;font-family:'IBM Plex Mono',monospace;font-size:12px;white-space:pre-wrap;word-break:break-word;background:#f7f7f4;padding:14px;border-radius:8px;border:0.8px solid var(--border-color);"></pre>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="cerrarDetalle()">Cerrar</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="js/app.js"></script>
+<script src="js/paginacion.js"></script>
+<script src="js/auditoria.js"></script>
+</body>
+</html>

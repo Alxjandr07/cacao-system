@@ -43,3 +43,16 @@ async function login() {
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter') login();
 });
+
+function togglePassword(ev) {
+  const pw = document.getElementById('password');
+  const cb = document.getElementById('showPw');
+  if (ev && ev.target && ev.target === cb) {
+    // El clic vino del checkbox: el navegador ya alternó 'checked'.
+    pw.type = cb.checked ? 'text' : 'password';
+  } else {
+    // El clic vino del texto: hay que invertir el checkbox manualmente.
+    cb.checked = !cb.checked;
+    pw.type = cb.checked ? 'text' : 'password';
+  }
+}

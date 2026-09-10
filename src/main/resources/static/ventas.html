@@ -26,6 +26,34 @@
       border-bottom: 0.8px solid #eee;
     }
     .col-span-2 { grid-column: 1 / -1; }
+    .alert-pend {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: #fdf3e3;
+      border: 1px solid #e8c87a;
+      color: #7a5b12;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .modo-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--cream);
+      border: 0.8px solid var(--border-color);
+      border-radius: 20px;
+      padding: 2px 10px;
+      margin-left: 8px;
+      vertical-align: middle;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .linea-num:disabled { background: #eee; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -55,6 +83,8 @@
     <a class="nav-item active" href="ventas.html"><span class="nav-icon">💰</span> Ventas</a>
     <a class="nav-item" href="facturacion.html"><span class="nav-icon">🧾</span> Facturación y Reportes</a>
     <a class="nav-item" href="trazabilidad.html"><span class="nav-icon">🔍</span> Trazabilidad</a>
+    <div class="nav-section-label">SISTEMA</div>
+    <a class="nav-item" href="auditoria.html"><span class="nav-icon">🛡️</span> Auditoría y Respaldos</a>
   </div>
   <div class="sidebar-user logout">
     <div class="user-row">
@@ -75,6 +105,7 @@
       <div class="page-title">Ventas</div>
       <div class="page-sub">Registro de ventas — Ciclo 2026</div>
     </div>
+    <button class="btn-outline" onclick="abrirModalConfig()">⚙ Precio e IVA</button>
   </div>
 
   <div class="content">
@@ -100,6 +131,11 @@
         <div class="kpi-value" id="kpiAnuladas">0</div>
         <div class="kpi-sub">canceladas</div>
       </div>
+    </div>
+
+    <div class="alert-pend" id="bannerBolsa" style="display:none">
+      <span>⚠ Nuevo día: sigue vigente el precio de bolsa de ayer (<b id="bannerBolsaPrecio"></b>). Actualiza el precio de hoy.</span>
+      <button class="btn-outline" onclick="abrirModalConfig()">Actualizar precio</button>
     </div>
 
     <form id="ventaForm" novalidate onsubmit="return false;">
@@ -160,7 +196,7 @@
       <div class="section-card">
         <div class="section-title">📦 Productos de la venta</div>
         <div class="fact-lines-head">
-          <span class="fl-titulo">Detalle de productos (multi-producto)</span>
+          <span class="fl-titulo">Detalle de productos (multi-producto)<span class="modo-badge" id="modoPrecioBadge" style="display:none"></span></span>
           <button type="button" class="btn-outline" onclick="agregarLinea()">+ Agregar producto</button>
         </div>
         <table id="lineasTabla">
@@ -179,7 +215,7 @@
         </table>
         <div class="fact-totales">
           <div class="total-row"><span>Subtotal</span><span id="fSubtotal">$0.00</span></div>
-          <div class="total-row"><span>IVA (15%)</span><span id="fIva">$0.00</span></div>
+          <div class="total-row"><span id="fIvaLabel">IVA (15%)</span><span id="fIva">$0.00</span></div>
           <div class="total-row total-final"><span>Total</span><span id="fTotal">$0.00</span></div>
         </div>
       </div>
@@ -214,6 +250,39 @@
 
 <!-- CONTENEDOR SOLO PARA IMPRESION -->
 <div id="reciboPrint" class="recibo-print"></div>
+
+<!-- MODAL PRECIO E IVA -->
+<div class="modal-overlay" id="modalConfig">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Precio e IVA</span>
+      <button class="modal-close" onclick="cerrarModal('modalConfig')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field">
+          <label>IVA (%)</label>
+          <input type="number" id="cfgIva" min="0" max="100" step="0.01" placeholder="15">
+        </div>
+        <div class="field">
+          <label>Precio de bolsa ($ / kg)</label>
+          <input type="number" id="cfgBolsaPrecio" min="0" step="0.01" placeholder="Ej: 2.85">
+        </div>
+        <div class="field col-span-2">
+          <div class="show-pw">
+            <input type="checkbox" id="cfgBolsaOn" style="width:auto">
+            <span><b>Usar precio de bolsa global</b> (fijo para todas las ventas)</span>
+          </div>
+          <span class="pw-hint" id="cfgBolsaFecha"></span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="cerrarModal('modalConfig')">Cancelar</button>
+      <button class="btn-primary" onclick="guardarConfig()">Guardar</button>
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 <script src="js/app.js"></script>

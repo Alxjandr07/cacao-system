@@ -1,6 +1,8 @@
 const API = 'http://localhost:8081/api/clientes';
 let clientes = [];
 
+Pag.registrar('clientes', 'tablaBody', 'pag-tablaBody');
+
 const u = JSON.parse(localStorage.getItem('usuario') || '{}');
 if (u.nombres) document.getElementById('userName').textContent = u.nombres + ' ' + (u.apellidos || '');
 if (u.rol)     document.getElementById('userRol').textContent = u.rol;
@@ -33,19 +35,13 @@ async function cargarClientes(conToast) {
   } catch {
     if (conToast) showToast('No se pudieron actualizar los datos', 'error');
     if (!clientes.length) {
-      document.getElementById('tablaBody').innerHTML =
-        '<tr><td colspan="8" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>';
+      Pag.pintar('clientes', [], '<tr><td colspan="8" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>');
     }
   }
 }
 
 function renderTabla(lista) {
-  const tbody = document.getElementById('tablaBody');
-  if (!lista.length) {
-    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No hay clientes registrados</td></tr>';
-    return;
-  }
-  tbody.innerHTML = lista.map(c => `
+  const filas = lista.map(c => `
     <tr>
       <td class="name">${c.nombre}</td>
       <td class="mono">${c.cedula || '—'}</td>
@@ -61,7 +57,8 @@ function renderTabla(lista) {
         <button class="action-btn danger" onclick="eliminarCliente(${c.id})">✕ Eliminar</button>
       </td>
     </tr>
-  `).join('');
+  `);
+  Pag.pintar('clientes', filas, '<tr><td colspan="8" class="empty-state">No hay clientes registrados</td></tr>');
 }
 
 function filtrar() {

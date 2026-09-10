@@ -40,6 +40,27 @@ public class Trazabilidad {
     @Column(name = "nombre_cliente", length = 100)
     private String nombreCliente;
 
+    @Column(name = "producto", length = 120)
+    private String producto;
+
+    @Column(name = "insumos_utilizados", length = 500)
+    private String insumosUtilizados;
+
+    @Column(name = "tratamiento", length = 500)
+    private String tratamiento;
+
+    @Column(name = "dias_secado")
+    private Integer diasSecado;
+
+    @Column(name = "secado_maquina")
+    private Boolean secadoMaquina = false;
+
+    @Column(name = "fecha_venta")
+    private LocalDateTime fechaVenta;
+
+    @Column(name = "trazabilidad_completa", nullable = false)
+    private Boolean trazabilidadCompleta = false;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EstadoLote estadoLote = EstadoLote.COSECHADO;

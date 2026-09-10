@@ -13,4 +13,5 @@ public interface TrazabilidadRepository extends JpaRepository<Trazabilidad, Long
     List<Trazabilidad> findByEstadoLote(EstadoLote estadoLote);
     List<Trazabilidad> findByNombreClienteContainingIgnoreCase(String nombreCliente);
     boolean existsByCodigoLote(String codigoLote);
+    List<Trazabilidad> findByTrazabilidadCompletaFalseAndEstadoLoteIn(List<EstadoLote> estados);
 }

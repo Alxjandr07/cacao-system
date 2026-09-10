@@ -2,6 +2,10 @@ const API = 'http://localhost:8081/api/personal';
 const API_USUARIOS = 'http://localhost:8081/api/usuarios';
 let personal = [];
 
+Pag.registrar('personal', 'tablaBody', 'pag-tablaBody');
+Pag.registrar('sueldos', 'tablaSueldos', 'pag-tablaSueldos');
+Pag.registrar('pagos', 'tablaPagos', 'pag-tablaPagos');
+
 const u = JSON.parse(localStorage.getItem('usuario') || '{}');
 if (u.nombres) document.getElementById('userName').textContent = u.nombres + ' ' + (u.apellidos || '');
 if (u.rol)     document.getElementById('userRol').textContent = u.rol;
@@ -35,19 +39,13 @@ async function cargarPersonal(conToast) {
   } catch {
     if (conToast) showToast('No se pudieron actualizar los datos', 'error');
     if (!personal.length) {
-      document.getElementById('tablaBody').innerHTML =
-        '<tr><td colspan="9" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>';
+      Pag.pintar('personal', [], '<tr><td colspan="9" class="empty-state">⚠ No se pudo conectar con el servidor</td></tr>');
     }
   }
 }
 
 function renderTabla(lista) {
-  const tbody = document.getElementById('tablaBody');
-  if (!lista.length) {
-    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No hay empleados registrados</td></tr>';
-    return;
-  }
-  tbody.innerHTML = lista.map(p => `
+  const filas = lista.map(p => `
     <tr>
       <td class="mono">${p.cedula || '—'}</td>
       <td class="name">${p.nombres}</td>
@@ -65,7 +63,8 @@ function renderTabla(lista) {
         <button class="action-btn danger" onclick="eliminarPersonal(${p.id})">✕ Eliminar</button>
       </td>
     </tr>
-  `).join('');
+  `);
+  Pag.pintar('personal', filas, '<tr><td colspan="9" class="empty-state">No hay empleados registrados</td></tr>');
 }
 
 function formatearFecha(fecha) {
@@ -319,8 +318,7 @@ function poblarSelectoresSueldos() {
 async function onSueldoEmpleadoChange() {
   const empId = document.getElementById('sEmpleado').value;
   if (!empId) {
-    document.getElementById('tablaSueldos').innerHTML =
-      '<tr><td colspan="4" class="empty-state">Selecciona un empleado para ver sus sueldos.</td></tr>';
+    Pag.pintar('sueldos', [], '<tr><td colspan="4" class="empty-state">Selecciona un empleado para ver sus sueldos.</td></tr>');
     document.getElementById('sTotalPendiente').textContent = '$0.00';
     document.getElementById('sTotalPagado').textContent = '$0.00';
     return;
@@ -338,18 +336,14 @@ async function onSueldoEmpleadoChange() {
 }
 
 function renderSueldos(sueldos) {
-  const tbody = document.getElementById('tablaSueldos');
-  if (!sueldos.length) {
-    tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No tiene sueldos configurados. Agrega uno abajo.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = sueldos.map(s => `
+  const filas = sueldos.map(s => `
     <tr>
       <td class="name">${(s.personal?.nombres || '') + ' ' + (s.personal?.apellidos || '')}</td>
       <td>${s.tipo}</td>
       <td class="mono">$${Number(s.sueldoDiario).toFixed(2)}</td>
       <td><button class="action-btn danger" onclick="eliminarSueldo(${s.id})">✕ Quitar</button></td>
-    </tr>`).join('');
+    </tr>`);
+  Pag.pintar('sueldos', filas, '<tr><td colspan="4" class="empty-state">No tiene sueldos configurados. Agrega uno abajo.</td></tr>');
 }
 
 async function guardarSueldoEmpleado() {
@@ -393,18 +387,12 @@ async function cargarPagos(conToast) {
     if (conToast) showToast('Datos actualizados correctamente ✓');
   } catch {
     if (conToast) showToast('No se pudieron actualizar los datos', 'error');
-    else document.getElementById('tablaPagos').innerHTML =
-      '<tr><td colspan="7" class="empty-state">⚠ No se pudo cargar</td></tr>';
+    else Pag.pintar('pagos', [], '<tr><td colspan="7" class="empty-state">⚠ No se pudo cargar</td></tr>');
   }
 }
 
 function renderPagos(pagos) {
-  const tbody = document.getElementById('tablaPagos');
-  if (!pagos.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Sin asignaciones/pagos registrados.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = pagos.map(p => `
+  const filas = pagos.map(p => `
     <tr>
       <td class="name">${p.personal?.nombres || '—'} ${p.personal?.apellidos || ''}</td>
       <td>${p.actividad?.parcela?.nombre || '—'}</td>
@@ -418,7 +406,8 @@ function renderPagos(pagos) {
           : '<button class="action-btn ok" onclick="marcarPago(' + p.id + ',\'PAGADO\')">✓ Marcar pagado</button>'}
         <button class="action-btn danger" onclick="eliminarPago(${p.id})">✕</button>
       </td>
-    </tr>`).join('');
+    </tr>`);
+  Pag.pintar('pagos', filas, '<tr><td colspan="7" class="empty-state">Sin asignaciones/pagos registrados.</td></tr>');
 }
 
 async function marcarPago(id, estado) {

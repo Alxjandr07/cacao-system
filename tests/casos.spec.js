@@ -17,6 +17,16 @@ async function loginOK(page) {
   await page.waitForURL('**/dashboard.html');
 }
 
+// Deja ventas en modo precio manual (los tests digitan el precio por línea)
+async function modoPrecioManual(page) {
+  await page.goto('/ventas.html');
+  await page.evaluate(() => fetch('/api/ventas/config', {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ usarPrecioBolsa: false })
+  }));
+  await page.goto('/ventas.html');
+}
+
 // ─────────────────────────────────────────────────────────
 // TC-AUTH-01 — Login exitoso con credenciales válidas
 // ─────────────────────────────────────────────────────────
@@ -124,7 +134,8 @@ test('TC-COS-01 · Registro de cosecha válida asociada a parcela y producto', a
 test('TC-INV-01 · Movimiento de salida con cantidad superior al stock', async ({ page }) => {
   await loginOK(page);
   await page.goto('/inventario.html');
-  const fila = page.locator('#tablaBody tr', { hasText: 'Cacao Nacional Arriba' });
+  await page.fill('#searchInput', 'Cacao Nacional Arriba');
+  const fila = page.locator('#tablaBody tr', { hasText: 'Cacao Nacional Arriba' }).first();
   await fila.locator('button', { hasText: 'Mov.' }).click();
   await page.locator('#labelSalida').click();
   await page.fill('#movCantidad', '99999');
@@ -139,7 +150,8 @@ test('TC-INV-01 · Movimiento de salida con cantidad superior al stock', async (
 test('TC-INV-02 · Movimiento de entrada válido incrementa el stock', async ({ page }) => {
   await loginOK(page);
   await page.goto('/inventario.html');
-  const fila = page.locator('#tablaBody tr', { hasText: 'Glifosato 4L' }).last();
+  await page.fill('#searchInput', 'Glifosato 4L');
+  const fila = page.locator('#tablaBody tr', { hasText: 'Glifosato 4L' }).first();
   await fila.locator('button', { hasText: 'Mov.' }).click();
   await page.fill('#movCantidad', '5');
   await page.click('.motivo-chip:has-text("Compra a proveedor")');
@@ -152,7 +164,7 @@ test('TC-INV-02 · Movimiento de entrada válido incrementa el stock', async ({ 
 // ─────────────────────────────────────────────────────────
 test('TC-VEN-03 · Registro de venta exitosa reduce stock y genera factura', async ({ page }) => {
   await loginOK(page);
-  await page.goto('/ventas.html');
+  await modoPrecioManual(page);
   await page.selectOption('#fCliente', { index: 1 });
   const fila = page.locator('#lineasBody tr').first();
   await fila.locator('select.linea-prod').first().selectOption({ index: 1 });
@@ -161,4 +173,81 @@ test('TC-VEN-03 · Registro de venta exitosa reduce stock y genera factura', asy
   await precio.fill('2.5');
   await page.click('button[onclick="confirmarVenta()"]');
   await expect(page.locator('#toast')).toContainText(/Venta registrada|Factura/i);
+});
+
+// ─────────────────────────────────────────────────────────
+// TC-PROV-03 — Registro exitoso de proveedor con todos los datos válidos
+// ─────────────────────────────────────────────────────────
+test('TC-PROV-03 · Registro exitoso de proveedor con todos los datos válidos', async ({ page }) => {
+  await loginOK(page);
+  await page.goto('/proveedores.html');
+  await page.click('button[onclick="abrirModalProveedor()"]');
+  const ruc = '1792' + String(Date.now()).slice(-9);
+  await page.fill('#pRuc', ruc);
+  await page.fill('#pNombre', 'Agroquímicos Vera S.A.');
+  await page.fill('#pTelefono', '0991234567');
+  await page.fill('#pEmail', 'contacto@vera.com');
+  await page.fill('#pDireccion', 'Km 5 vía Quevedo');
+  await page.fill('#pCiudad', 'Quevedo');
+  await page.selectOption('#pTipo', 'SOCIEDAD');
+  await page.click('button[onclick="guardarProveedor()"]');
+  await expect(page.locator('#toast')).toContainText('Proveedor creado');
+  await page.fill('#searchInput', ruc);
+  await expect(page.locator('#tablaBody')).toContainText(ruc);
+});
+
+// ─────────────────────────────────────────────────────────
+// TC-VEN-01 — Registro de venta sin cliente seleccionado
+// ─────────────────────────────────────────────────────────
+test('TC-VEN-01 · Registro de venta sin cliente seleccionado', async ({ page }) => {
+  await loginOK(page);
+  await modoPrecioManual(page);
+  const fila = page.locator('#lineasBody tr').first();
+  await fila.locator('select.linea-prod').first().selectOption({ index: 1 });
+  await fila.locator('input[type=number]').first().fill('1');
+  await fila.locator('input[placeholder*="Precio"]').fill('2.5');
+  await page.click('button[onclick="confirmarVenta()"]');
+  await expect(page.locator('#toast')).toContainText('Selecciona un cliente');
+});
+
+// ─────────────────────────────────────────────────────────
+// TC-VEN-04 — Modo precio de bolsa bloquea el precio manual
+// ─────────────────────────────────────────────────────────
+test('TC-VEN-04 · Modo precio de bolsa bloquea el precio manual', async ({ page }) => {
+  await loginOK(page);
+  await page.goto('/ventas.html');
+  await page.click('button:has-text("Precio e IVA")');
+  await page.fill('#cfgBolsaPrecio', '3.25');
+  await page.check('#cfgBolsaOn');
+  await page.click('#modalConfig button.btn-primary');
+  await expect(page.locator('#toast')).toContainText('Configuración guardada');
+  await expect(page.locator('#modoPrecioBadge')).toContainText('Bolsa $3.25/kg');
+  await expect(page.locator('#lineasBody input[placeholder*="Precio"]').first()).toBeDisabled();
+  await page.click('button:has-text("Precio e IVA")');
+  await page.uncheck('#cfgBolsaOn');
+  await page.click('#modalConfig button.btn-primary');
+  await expect(page.locator('#toast')).toContainText('Configuración guardada');
+  await expect(page.locator('#lineasBody input[placeholder*="Precio"]').first()).toBeEnabled();
+});
+
+// ─────────────────────────────────────────────────────────
+// TC-FAC-01 — Anulación de una factura existente
+// ─────────────────────────────────────────────────────────
+test('TC-FAC-01 · Anulación de una factura existente', async ({ page }) => {
+  await loginOK(page);
+  await page.goto('/facturacion.html');
+  const fila = page.locator('#tablaBody tr', {
+    has: page.locator('button:has-text("Anular")')
+  }).first();
+  await expect(fila).toBeVisible();
+  const numero = (await fila.locator('td.lote').textContent()).trim();
+  page.once('dialog', dialog => dialog.accept());
+  await fila.locator('button:has-text("Anular")').click();
+  await expect(page.locator('#toast')).toContainText('Factura anulada');
+
+  await page.selectOption('#filtroEstado', 'ANULADA');
+  await page.fill('#searchInput', numero);
+  await expect(page.locator('#tablaBody')).toContainText(numero);
+  await expect(page.locator('#tablaBody tr', { hasText: numero })
+    .locator('button:has-text("Anular")')).toHaveCount(0);
 });
